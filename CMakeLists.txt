@@ -130,7 +130,16 @@ endif()
 
 
 file(GLOB sources src/*.f90)
+add_subdirectory(src/shaw)
+if(WIN32 AND CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
+  set_source_files_properties(src/shaw_swat_module.f90 PROPERTIES COMPILE_OPTIONS "/real-size:64")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  set_source_files_properties(src/shaw_swat_module.f90 PROPERTIES COMPILE_OPTIONS "-real-size;64")
+else()
+  set_source_files_properties(src/shaw_swat_module.f90 PROPERTIES COMPILE_OPTIONS "-fdefault-real-8;-fdefault-double-8")
+endif()
 add_executable(${SWATPLUS_EXE} ${sources})
+target_link_libraries(${SWATPLUS_EXE} PRIVATE shaw_kernel)
 
 #############################################################################
 # Install
@@ -142,7 +151,7 @@ install(TARGETS ${SWATPLUS_EXE} DESTINATION RUNTIME DESTINATION ${PROJECT_SOURCE
 find_package(Python3 REQUIRED)
 
 set(spcheck "${PROJECT_SOURCE_DIR}/test/spcheck.py")
-set(exe_path "${PROJECT_BINARY_DIR}/${SWATPLUS_EXE}")
+set(exe_path "$<TARGET_FILE:${SWATPLUS_EXE}>")
 set(test_dir "${PROJECT_BINARY_DIR}/data")
 set(ref_dir  "${PROJECT_SOURCE_DIR}/data")
 
@@ -150,7 +159,7 @@ set(ref_dir  "${PROJECT_SOURCE_DIR}/data")
 set(rerr "0.01")
 set(aerr "1e-8")
 
-add_test(Ames_sub1   ${Python3_EXECUTABLE} ${spcheck} ctest ${exe_path} ${ref_dir}/Ames_sub1 ${test_dir} --abserr ${aerr} --relerr ${rerr})
+add_test(NAME Ames_sub1 COMMAND ${Python3_EXECUTABLE} ${spcheck} ctest ${exe_path} ${ref_dir}/Ames_sub1 ${test_dir} --abserr ${aerr} --relerr ${rerr})
 # add_test(Ithaca_sub6 python3 ${check_py} ${exe_path} ${ref_dir}/Ithaca_sub6 ${test_dir} ${aerr} ${rerr})
 
 

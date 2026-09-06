@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.20)
+project(shaw_official_parity LANGUAGES Fortran)
+if(WIN32 AND CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} /real-size:64 /align:nocommons /align:nodcommons")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -real-size 64 -align nocommons -align nodcommons")
+else()
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fdefault-real-8 -fdefault-double-8 -fno-align-commons")
+endif()
+set(physics "${CMAKE_CURRENT_LIST_DIR}/../../src/shaw")
+add_library(shaw_reference STATIC ../../build/shaw_reference_source/shaw_official_reference.for
+  "${physics}/shaw_legacy_state.f90" "${physics}/shaw_common_access.f90"
+  "${physics}/shaw_column_types.f90" "${physics}/shaw_column_api.f90")
+set_target_properties(shaw_reference PROPERTIES Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/mod")
+target_include_directories(shaw_reference PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/mod")
+if(WIN32 AND CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM")
+  target_compile_options(shaw_reference PRIVATE /fpe:0 /traceback /check:bounds)
+  set_source_files_properties(../../build/shaw_reference_source/shaw_official_reference.for
+    PROPERTIES COMPILE_OPTIONS "/fixed;/extend-source:132")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
+  target_compile_options(shaw_reference PRIVATE -fpe0 -traceback -check bounds)
+  set_source_files_properties(../../build/shaw_reference_source/shaw_official_reference.for
+    PROPERTIES COMPILE_OPTIONS "-fixed;-extend-source;132")
+else()
+  target_compile_options(shaw_reference PRIVATE -fcheck=bounds -ffpe-trap=invalid,zero,overflow -fbacktrace)
+  set_source_files_properties(../../build/shaw_reference_source/shaw_official_reference.for
+    PROPERTIES COMPILE_OPTIONS "-ffixed-form;-ffixed-line-length-132;-fallow-argument-mismatch")
+endif()
+add_executable(official_shaw ../test_shaw_reference.f90)
+target_link_libraries(official_shaw PRIVATE shaw_reference)

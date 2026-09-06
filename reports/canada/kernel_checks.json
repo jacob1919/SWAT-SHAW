@@ -1,0 +1,24 @@
+{
+  "shaw_column_test": {
+    "hours": 240,
+    "max_abs_hourly_residual_mm": 9.755694972e-05
+  },
+  "shaw_canopy_test": {
+    "hours": 288,
+    "max_abs_hourly_residual_mm": 0.0001462643278
+  },
+  "official_reference": {
+    "hours": 720,
+    "values_compared": 282960,
+    "different_values": 0,
+    "max_absolute_difference": 0.0,
+    "scope": "one canopy column; no solutes; original SAVE storage versus isolated extracted kernel; matched adapter inputs"
+  },
+  "corrected_path": {
+    "soil_tolerance": 0.0001,
+    "canopy_relative_vapor_tolerance": 0.0001,
+    "canopy_storage_jacobian_correction": true,
+    "leaf_F2_elimination_correction": true,
+    "max_iterations_without_forced_refinement": 40
+  }
+}

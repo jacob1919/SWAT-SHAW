@@ -39,6 +39,7 @@
 
 !!    ~ ~ ~ ~ ~ ~ END SPECIFICATIONS ~ ~ ~ ~ ~ ~
 
+      use shaw_swat_module, only: shaw_active, shaw_plant_uptake
       use plant_data_module
       use basin_module
       use hru_module, only : hru, ihru, epmax, ipl, ep_day, uptake
@@ -94,6 +95,13 @@
           pcom(j)%plstr(ipl)%strsa = 1.
         end if
       end if
+
+      ! Preserve SWAT+ aeration stress before taking SHAW's already-computed
+      ! root uptake; this path must not withdraw soil water a second time.
+      if (shaw_active(j)) then
+        call shaw_plant_uptake(j,ipl,epmax(ipl))
+        return
+      endif
 
       !! compute limiting water stress
       if (epmax(ipl) <= 1.e-6) then

@@ -1,0 +1,174 @@
+{
+  "status": "pass",
+  "checks": {
+    "basin_aqu_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "b42853e4c6b7c8a8f99d7d882b86860f79c5a0d51f2211b6e2b1bd29a7e4b724"
+    },
+    "basin_carbon_all.txt": {
+      "lines": 2,
+      "sha256_without_banner": "d80b536491fc24a8e5807bbd730682c6c53288ebf0e1a1a02e4c73f7ba6e3790"
+    },
+    "basin_cha_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "c702d9fec32d6eabbb1d69270769c2fa855cef8c23d95987d66bf12b90d2be07"
+    },
+    "basin_crop_yld_aa.txt": {
+      "lines": 3,
+      "sha256_without_banner": "ba6369ec3a5ae0716e5e1cb031acc9a0d943781b4b9c5860cef0cc567d091a90"
+    },
+    "basin_crop_yld_yr.txt": {
+      "lines": 93,
+      "sha256_without_banner": "fb671454addecfe2547d3e10666e9bd196c18a65ae9c170bdd86500c3249da41"
+    },
+    "basin_ls_aa.txt": {
+      "lines": 3,
+      "sha256_without_banner": "6ecaf3f5aa9511aab7f1919b1e58f40d5e589b21b41f82041b726e8a4a974721"
+    },
+    "basin_nb_aa.txt": {
+      "lines": 3,
+      "sha256_without_banner": "b769769902b6e9a618bfd951318e2094c4f6e0746faf064f615546847dbb87b4"
+    },
+    "basin_psc_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "8fd654dd8399269fbbd3b8a95638471ab38d22328463b03c0d9e93e54dd2e8fd"
+    },
+    "basin_pw_aa.txt": {
+      "lines": 3,
+      "sha256_without_banner": "a10954fece25eece6fb4ca5ada2df13cbb535c7ecac24a78ac3d01dc359a91b6"
+    },
+    "basin_res_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "cac3a43ee35ab9914113d5f3ed7010efc6ea02c2cf94c01c92ba29e3b1da6879"
+    },
+    "basin_sd_cha_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "dafd76e0496e307f311a5bd172170266925f55786a136bf7e3504f76cd676271"
+    },
+    "basin_sd_chamorph_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "0c8949d1169fedaad3cf747e271eb53b11b93621d4068e98dc4d4bb5a0b22087"
+    },
+    "basin_totc.txt": {
+      "lines": 3,
+      "sha256_without_banner": "43034c7dc74d2f951d94e33254599222b46ad4abc36152ec609e1900c3a526d7"
+    },
+    "basin_wb_aa.txt": {
+      "lines": 3,
+      "sha256_without_banner": "23d40b99ab46f2410c83b81ae40a90e3ac7d9c9a161f4c2bde2b95a38c7026e4"
+    },
+    "checker.out": {
+      "lines": 14,
+      "sha256_without_banner": "ff187ab24936c95cbcd4acd63ca039bc0f615e4b47735c2ac2b8c0ad4991cee5"
+    },
+    "co2.out": {
+      "lines": 46,
+      "sha256_without_banner": "86a7ff1dc5f3af604707efd30d187cc385ea00ef6d03709ee122956f210e7b1e"
+    },
+    "crop_yld_aa.txt": {
+      "lines": 26,
+      "sha256_without_banner": "ee61faab2ae29bf1fb39a7d180539e106a0e748d628b346e5a8aec857f2be9f0"
+    },
+    "crop_yld_yr.txt": {
+      "lines": 1106,
+      "sha256_without_banner": "74c907a94d0a67efb4844a47db12b60b5ffd2539b82c37e8268e6758e815f671"
+    },
+    "deposition_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "2e6d49e0192d2d40fb69d8ba8fdde3b0acfac08b6cd49d745b313a938d8c3370"
+    },
+    "erosion.out": {
+      "lines": 2,
+      "sha256_without_banner": "86d2176158b6dbbd763617fff43a3ad942545936a953e062b6553b6b1d952d32"
+    },
+    "hru_ls_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "6cde9b1d4b4e4f770696e2cd5ca41001c5ffdb9a7c13be886dc538a28c3c4548"
+    },
+    "hru_nb_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "b8004754ea96efe42c46aa33ca382f671bb9d782de952e9de823432e84f63d2c"
+    },
+    "hru_ncycle_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "d211df1738e1a0e02d514f162e6c11037e9b709766d73d45bf5f766c84722235"
+    },
+    "hru_nut_carb_gl_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "c2bec15a13bf7ba98970383b4dc6ed368a0158677333268914bbf4ed130269e4"
+    },
+    "hru_orgc.txt": {
+      "lines": 2,
+      "sha256_without_banner": "b2c130e68e8594d7042b0b6ebe4982fa0edc1c6bb7ba79eee5da0528d8ac5dd1"
+    },
+    "hru_plcarb_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "f4f732ad9bd6b63f2321c78aeb283b8bac9a72fb34790ee9cb9b7a2609a29373"
+    },
+    "hru_plc_stat.txt": {
+      "lines": 6626,
+      "sha256_without_banner": "bfce7df85dee86aa5a5b0432d65d8840eff7037a8108610f0107d59810767f45"
+    },
+    "hru_pw_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "ec09414c7bfad8b7cd28fc3aaf56cdc54ebde7b7d616f3a1ae7c6308e3dc650d"
+    },
+    "hru_rescarb_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "8ceb7e5ce2a68cc77d972cce7aeaa7d56ed002722e5837207a7dd1c9ac030cf9"
+    },
+    "hru_resc_stat.txt": {
+      "lines": 6626,
+      "sha256_without_banner": "22bd6b994b630740e4a579356ffac64efb4b2d57d07455b1464f9dd82b10c8be"
+    },
+    "hru_scf_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "111f89c50c0811400e4d2ed5725ee99efae6c73d4268acdbe7647a5faf0e0cbf"
+    },
+    "hru_soilcarb_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "7116207e58de0541eae395a46d4ec258ad36146acf770017b6d109bfc9ce8c9f"
+    },
+    "hru_soilc_stat.txt": {
+      "lines": 6626,
+      "sha256_without_banner": "c6141dd2bf4351304c87cc2b6104f0a4c8668cab19debf811d284fb0025bd227"
+    },
+    "hru_totc.txt": {
+      "lines": 3,
+      "sha256_without_banner": "68dec574379e12a190bb1a853cf22f15b50f6f1ec2d67aa1777bf3dd20751d05"
+    },
+    "hru_wb_aa.txt": {
+      "lines": 14,
+      "sha256_without_banner": "a031412d50cd38cb44a054bcebf28a12c2afe92a0807979f7388da8bbcad131d"
+    },
+    "hydin_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "3ff8cb946e2426bb8af5fbd1a620a6bc1bd79e0fdf67e836e35098bb46d4f78b"
+    },
+    "hydout_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "3ff8cb946e2426bb8af5fbd1a620a6bc1bd79e0fdf67e836e35098bb46d4f78b"
+    },
+    "lu_change_out.txt": {
+      "lines": 1,
+      "sha256_without_banner": "751ea4136f25bbf43d28c2a495615027905bda7cc7ef62fc5ffa7024b6bd5255"
+    },
+    "mgt_out.txt": {
+      "lines": 3386,
+      "sha256_without_banner": "1e75a9d02b645988631399ce41ded063a5277c3b5e8f0e43a306f8b542338404"
+    },
+    "recall_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "2e6d49e0192d2d40fb69d8ba8fdde3b0acfac08b6cd49d745b313a938d8c3370"
+    },
+    "ru_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "2e6d49e0192d2d40fb69d8ba8fdde3b0acfac08b6cd49d745b313a938d8c3370"
+    },
+    "wetland_aa.txt": {
+      "lines": 2,
+      "sha256_without_banner": "cac3a43ee35ab9914113d5f3ed7010efc6ea02c2cf94c01c92ba29e3b1da6879"
+    }
+  },
+  "historical_golden": "not modified; also differs from pinned official executable"
+}

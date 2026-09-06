@@ -1,3 +1,9 @@
+# SWAT+SHAW experimental coupling
+
+This branch integrates USDA-ARS SHAW 3.0.3 canopy, snow and soil water/heat physics into SWAT+ HRUs. It excludes SHAW solute and CO₂ transport. See [method and build notes](SWAT_SHAW.md), [numerical audit](reports/NUMERICAL_AUDIT.md), and [development status](DEVELOPMENT.md). This is an uncalibrated research prototype; model differences alone do not establish improved accuracy.
+
+The original upstream README follows.
+
 [![Release](https://img.shields.io/github/release/swat-model/swatplus.svg?style=flat-square)](https://github.com/swat-model/swatplus/releases)
 # SWAT+
 

@@ -1,4 +1,6 @@
 Thumbs.db
+__pycache__/
+*.py[cod]
 *.onetoc?
 Makefile
 */Makefile
@@ -46,6 +48,8 @@ _ReSharper*/
 .DS_Store
 Data/.DS_Store
 build/
+validation/canada/
+shaw_column_test.csv
 nbproject/
 .metadata/
 .project

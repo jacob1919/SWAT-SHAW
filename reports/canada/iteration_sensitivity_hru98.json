@@ -1,0 +1,23 @@
+{
+  "et_mm": {
+    "minimum_step_only": 2225.948543728299,
+    "all_unforced_steps": 2228.381601646057
+  },
+  "runoff_mm": {
+    "minimum_step_only": 248.42981045996,
+    "all_unforced_steps": 250.17078680403
+  },
+  "percolation_mm": {
+    "minimum_step_only": 1228.498503650199,
+    "all_unforced_steps": 1224.104596026607
+  },
+  "lateral_mm": {
+    "minimum_step_only": 5.344349948e-07,
+    "all_unforced_steps": 5.344349948e-07
+  },
+  "residual_mm": {
+    "minimum_step_only": -0.0881833225206201,
+    "all_unforced_steps": -0.3184742355706067
+  },
+  "max_daily_residual_mm": 0.09652799998
+}

@@ -19,6 +19,7 @@
 
 !!    ~ ~ ~ ~ ~ ~ END SPECIFICATIONS ~ ~ ~ ~ ~ ~
       
+      use shaw_swat_module, only: shaw_active
       use basin_module
       use time_module
       use hydrograph_module
@@ -44,7 +45,7 @@
       call sq_dailycn
 
       !! compute runoff - surfq in mm H2O
-      if (precip_eff > 0.1) then
+      if (precip_eff > 0.1 .and. .not.shaw_active(j)) then
          call sq_volq 
 
         !! adjust runoff for loss into crack volume

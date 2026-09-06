@@ -15,6 +15,7 @@
          wetqsalt, wtspsalt,gwupsalt, usle_cfac,                                                  &
          surqcs, latqcs, tilecs, perccs, gwupcs, sedmcs, urbqcs, wetqcs, wtspcs                         !rtb cs
                                                                                                                                         !HAK 7/27/22
+      use shaw_swat_module, only: shaw_active, shaw_swat_day
       use soil_module 
       use plant_module
       use basin_module
@@ -231,13 +232,13 @@
         endif
         
         !! calculate soil temperature for soil layers
-        call stmp_solt
+        if (.not.shaw_active(j)) call stmp_solt
         
         !!compute canopy interception
-        call sq_canopyint
+        if (.not.shaw_active(j)) call sq_canopyint
 
         !! compute snow melt
-        call sq_snom
+        if (.not.shaw_active(j)) call sq_snom
                   
         !!route overland flow across hru - add tile flow if not subirrigation or saturated buffer
         tile_fr_surf = 1.   !assume all tile goes overland until get saturated buffer dtbl
@@ -275,10 +276,11 @@
                   
         !! compute evapotranspiration
         call et_pot
-        call et_act
+        if (.not.shaw_active(j)) call et_act
 
         !! perform management operations
         if (yr_skip(j) == 0) call mgt_operatn
+        if (shaw_active(j)) call shaw_swat_day(j)
         
         !! compute surface runoff processes
         if (ires == 0) then
@@ -328,7 +330,7 @@
         end if
         
         !! perform soil water routing
-        call swr_percmain
+        if (.not.shaw_active(j)) call swr_percmain
         
         !rtb gwflow: calculate saturation excess reaching the main channel for the current day (qexcess)
         bss_ex(1,j) = bss_ex(1,j) + satexq(j)

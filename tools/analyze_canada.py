@@ -1,0 +1,264 @@
+"""Reproducible numerical/process comparison. No discharge observations are supplied."""
+from pathlib import Path
+from collections import defaultdict
+import csv
+import datetime as dt
+import json
+import math
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+ROOT=Path(__file__).resolve().parents[1]
+DATA=ROOT/'validation/canada'
+OUT=ROOT/'reports/canada'
+MODES=('official','existing_ft','shaw')
+SIMULATION_START=dt.date(2020,1,1)
+EVALUATION_START=dt.date(2021,1,1)
+SIMULATION_END=dt.date(2023,4,30)
+
+def date_range(start,end):
+    return [start+dt.timedelta(days=i) for i in range((end-start).days+1)]
+
+def read_run_status():
+    runs={};errors=[]
+    for mode in (*MODES,'coupling_off'):
+        try:
+            runs[mode]=json.loads((DATA/mode/'run.json').read_text())
+        except (OSError,ValueError) as exc:
+            errors.append(f'{mode}: run metadata unavailable ({exc})')
+            continue
+        if runs[mode].get('exit_code')!=0 or not runs[mode].get('completed_utc'):
+            errors.append(f"{mode}: incomplete or unsuccessful run (exit_code={runs[mode].get('exit_code')})")
+    if all(m in runs for m in ('shaw','coupling_off')):
+        if not runs['shaw'].get('sha256') or runs['shaw'].get('sha256')!=runs['coupling_off'].get('sha256'):
+            errors.append('shaw and coupling_off must use the same executable SHA256; rerun the stale variant')
+    return runs,errors
+
+def read_scope():
+    with (DATA/'shaw/shaw_hru_scope.csv').open() as f:
+        raw=list(csv.DictReader(f))
+    scope=[];seen=set();excluded=0
+    for row in raw:
+        hru=int(row['hru']);area=float(row['area_ha'])
+        if hru in seen:raise ValueError(f'Duplicate HRU in scope: {hru}')
+        seen.add(hru)
+        if not math.isfinite(area) or area<0:raise ValueError(f'Invalid HRU area: {row}')
+        if area==0:
+            excluded+=1
+            continue
+        scope.append({'hru':hru,'area_ha':area,'coupled':row['coupled'].strip().upper()=='T'})
+    if not scope or not any(r['coupled'] for r in scope):raise ValueError('No positive-area coupled HRUs')
+    return scope,excluded
+
+def water_budget(scope):
+    """Area means use the coupled domain only; all depths are liquid-water equivalent."""
+    areas={r['hru']:r['area_ha'] for r in scope if r['coupled']}
+    coupled_area=sum(areas.values())
+    periods={'full_simulation':(SIMULATION_START,SIMULATION_END),
+             'warmup':(SIMULATION_START,EVALUATION_START-dt.timedelta(days=1)),
+             'evaluation':(EVALUATION_START,SIMULATION_END)}
+    by_day={};seen=set()
+    fluxes=('precip_mm','external_soil_mm','surface_input_mm','et_mm','runoff_mm','percolation_mm','lateral_mm',
+            'canopy_air_exchange_mm')
+    with (DATA/'shaw/shaw_hru_daily.csv').open() as f:
+        reader=csv.DictReader(f)
+        required={'year','jday','hru','residual_mm','ice_mm','storage_start_mm','storage_end_mm',
+                  'retry_hours','max_hour_parts',*fluxes}-{'canopy_air_exchange_mm'}
+        has_canopy_exchange='canopy_air_exchange_mm' in (reader.fieldnames or [])
+        missing=required-set(reader.fieldnames or [])
+        if missing:raise ValueError(f'SHAW daily diagnostics missing columns: {sorted(missing)}')
+        for row in reader:
+            hru=int(row['hru']);year=int(row['year']);jday=int(row['jday'])
+            date=dt.date(year,1,1)+dt.timedelta(days=jday-1)
+            if date.year!=year or jday<1 or not SIMULATION_START<=date<=SIMULATION_END:
+                raise ValueError(f'Invalid SHAW diagnostic date: {year}/{jday}')
+            if hru not in areas:raise ValueError(f'Daily diagnostic for an HRU outside the positive-area coupled scope: {hru}')
+            key=(date,hru)
+            if key in seen:raise ValueError(f'Duplicate SHAW HRU day: {key}')
+            seen.add(key)
+            values={name:float(row[name]) for name in required-{'year','jday','hru'}}
+            values['canopy_air_exchange_mm']=float(row['canopy_air_exchange_mm']) if has_canopy_exchange else 0.
+            if not all(math.isfinite(v) for v in values.values()):raise ValueError(f'Nonfinite SHAW diagnostic: {key}')
+            retries=values['retry_hours'];parts=values['max_hour_parts']
+            if not retries.is_integer() or not 0<=retries<=24 or not parts.is_integer() or parts<1:
+                raise ValueError(f'Invalid retry counters: {key}')
+            if abs(values['residual_mm'])>.10001:raise AssertionError(f'Water-budget gate exceeded: {key}')
+            day=by_day.setdefault(date,defaultdict(float))
+            weight=areas[hru]/coupled_area
+            day['hru_days']+=1
+            day['residual_mm']+=weight*values['residual_mm']
+            day['ice_mm']+=weight*values['ice_mm']
+            day['max_abs_residual_mm']=max(day['max_abs_residual_mm'],abs(values['residual_mm']))
+            day['retried_hru_hours']+=int(retries)
+            day['hru_days_requiring_retry']+=int(retries>0)
+            day['max_hour_parts']=max(day['max_hour_parts'],int(parts))
+            day['storage_change_mm']+=weight*(values['storage_end_mm']-values['storage_start_mm'])
+            for name in fluxes:day[name]+=weight*values[name]
+    expected=date_range(SIMULATION_START,SIMULATION_END)
+    if sorted(by_day)!=expected or any(by_day[d]['hru_days']!=len(areas) for d in by_day):
+        raise ValueError(f'Incomplete SHAW daily diagnostics: {len(seen)} HRU days; expected {len(expected)*len(areas)}')
+    result={}
+    for name,(start,end) in periods.items():
+        days=[by_day[d] for d in date_range(start,end)]
+        rows=int(sum(d['hru_days'] for d in days))
+        retries=int(sum(d['retried_hru_hours'] for d in days))
+        result[name]={'start':str(start),'end':str(end),'days':len(days),'hru_days':rows,
+            'canopy_air_exchange_reported':has_canopy_exchange,
+            'max_absolute_hru_daily_residual_mm':max(d['max_abs_residual_mm'] for d in days),
+            'coupled_area_cumulative_signed_residual_mm':sum(d['residual_mm'] for d in days),
+            'coupled_area_sum_absolute_daily_residual_mm':sum(abs(d['residual_mm']) for d in days),
+            'max_coupled_area_ice_water_mm':max(d['ice_mm'] for d in days),
+            'coupled_area_storage_change_mm':sum(d['storage_change_mm'] for d in days),
+            'coupled_area_flux_totals_mm':{field:sum(d[field] for d in days) for field in fluxes},
+            'retried_hru_hours':retries,'total_hru_hours':rows*24,
+            'retried_hru_hours_percent':100*retries/(rows*24),
+            'hru_days_requiring_retry':int(sum(d['hru_days_requiring_retry'] for d in days)),
+            'max_hour_parts':int(max(d['max_hour_parts'] for d in days))}
+    return result
+
+def read_output(path):
+    with path.open() as f:
+        next(f);headers=next(f).split();next(f)
+        rows=[]
+        for line in f:
+            fields=line.split()
+            if not fields:continue
+            row={}
+            for name,value in zip(headers,fields):
+                if name=='name':row[name]=value
+                else:
+                    number=float(value)
+                    if not math.isfinite(number):raise ValueError(f'Nonfinite {path}: {line}')
+                    row[name]=number
+            row['date']=dt.date(int(row['yr']),int(row['mon']),int(row['day']))
+            rows.append(row)
+    return rows
+
+def outlet_ids():
+    result=[]
+    for line in (DATA/'inputs/chandeg.con').read_text().splitlines()[2:]:
+        f=line.split()
+        if int(f[12])==0:result.append(int(f[0]))
+    if not result:raise ValueError('No terminal channel in routing topology')
+    return result
+
+def regression():
+    count=0;files=0
+    for path in (DATA/'official').glob('*.txt'):
+        other=DATA/'coupling_off'/path.name
+        if not other.exists():raise AssertionError(f'Off regression missing output: {path.name}')
+        try:
+            with path.open() as a,other.open() as b:
+                lines_a=a.readlines();lines_b=b.readlines()
+        except UnicodeError:continue
+        # Run banner has a build date; all subsequent output must agree.
+        if len(lines_a)!=len(lines_b):raise AssertionError(f'Off regression length: {path.name}')
+        if lines_a[1:]!=lines_b[1:]:raise AssertionError(f'Off regression values: {path.name}')
+        count+=max(0,len(lines_a)-3);files+=1
+    if files<10:raise AssertionError('Insufficient off-regression outputs')
+    return {'files_identical_after_banner':files,'data_rows':count}
+
+def main():
+    OUT.mkdir(parents=True,exist_ok=True)
+    runs,errors=read_run_status()
+    reg=None
+    if all(runs.get(m,{}).get('exit_code')==0 for m in ('official','coupling_off')):
+        reg=regression()
+        (OUT/'regression.json').write_text(json.dumps(reg,indent=2)+'\n')
+    status={'status':'incomplete' if errors else 'validating_outputs','errors':errors,'runs':runs}
+    (OUT/'analysis_status.json').write_text(json.dumps(status,indent=2)+'\n')
+    if errors:
+        raise SystemExit('Three-model comparison withheld:\n'+'\n'.join(errors)+
+                         '\nAny existing comparison artifacts describe an earlier run; inspect analysis_status.json.')
+    outlets=outlet_ids()
+    wb={m:read_output(DATA/m/'basin_wb_day.txt') for m in MODES}
+    flow={m:defaultdict(float) for m in MODES}
+    for mode in MODES:
+        seen=set()
+        for row in read_output(DATA/mode/'channel_sd_day.txt'):
+            channel=int(row['unit'])
+            if channel in outlets:
+                key=(row['date'],channel)
+                if key in seen:raise ValueError(f'Duplicate outlet daily output: {mode}: {key}')
+                seen.add(key)
+                flow[mode][row['date']]+=row['flo_out']
+        if len(seen)!=len(outlets)*len(date_range(EVALUATION_START,SIMULATION_END)):
+            raise ValueError(f'Incomplete outlet daily output: {mode}')
+    dates=[r['date'] for r in wb['official']]
+    expected=date_range(EVALUATION_START,SIMULATION_END)
+    assert dates==expected
+    for mode in MODES:
+        assert [r['date'] for r in wb[mode]]==dates
+        assert sorted(flow[mode])==dates
+    # Validate the complete diagnostic record before publishing comparative metrics.
+    scope,excluded=read_scope()
+    areas={r['hru']:r['area_ha'] for r in scope}
+    coupled_area=sum(r['area_ha'] for r in scope if r['coupled'])
+    budgets=water_budget(scope)
+    annual=[]
+    for mode in MODES:
+        for year in (2021,2022,2023):
+            rows=[r for r in wb[mode] if r['date'].year==year]
+            q=[(r['date'],flow[mode][r['date']]) for r in rows]
+            peak=max(q,key=lambda x:x[1])
+            annual.append({'model':mode,'year':year,'days':len(rows),
+                'period_start':str(rows[0]['date']),'period_end':str(rows[-1]['date']),
+                'complete_calendar_year':len(rows)==(dt.date(year+1,1,1)-dt.date(year,1,1)).days,
+                **{name+'_mm':sum(r[name] for r in rows) for name in
+                   ('precip','snofall','snomlt','surq_gen','latq','wateryld','perc','et')},
+                'max_snowpack_mm':max(r['snopack'] for r in rows),
+                'mean_outlet_m3s':sum(x[1] for x in q)/len(q),'peak_outlet_m3s':peak[1],'peak_date':str(peak[0])})
+    with (OUT/'annual_comparison.csv').open('w',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(annual[0]));writer.writeheader();writer.writerows(annual)
+    daily=[]
+    for i,date in enumerate(dates):
+        row={'date':str(date)}
+        for mode in MODES:
+            row[mode+'_outlet_m3s']=flow[mode][date]
+            for field in ('surq_gen','latq','perc','et','snopack','sw_final'):
+                row[mode+'_'+field+'_mm']=wb[mode][i][field]
+        daily.append(row)
+    with (OUT/'daily_comparison.csv').open('w',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(daily[0]));writer.writeheader();writer.writerows(daily)
+    differences={}
+    reference=np.array([flow['official'][d] for d in dates])
+    for mode in MODES[1:]:
+        q=np.array([flow[mode][d] for d in dates])
+        differences[mode]={'outlet_daily_rmse_vs_official_m3s':float(np.sqrt(np.mean((q-reference)**2))),
+            'outlet_mean_change_percent':float(100*(q.mean()/reference.mean()-1)) if reference.mean()!=0 else None}
+    fig,axs=plt.subplots(4,1,figsize=(12,10),sharex=True,layout='constrained')
+    labels={'official':'Official SWAT+','existing_ft':'Existing freeze-thaw','shaw':'SWAT+SHAW (experimental)'}
+    for mode in MODES:
+        axs[0].plot(dates,[flow[mode][d] for d in dates],lw=.85,label=labels[mode])
+        for ax,field in zip(axs[1:],('snopack','et','perc')):
+            ax.plot(dates,[r[field] for r in wb[mode]],lw=.85)
+    for ax,label in zip(axs,('Outlet flow (m³/s)','Basin mean SWE (mm)','ET (mm/day)','Percolation (mm/day)')):
+        ax.set_ylabel(label);ax.grid(alpha=.2)
+    axs[0].legend(ncol=3,fontsize=9)
+    fig.suptitle('Canadian case: identical forcing, uncalibrated process comparison\n2020 warm-up; no observed discharge supplied')
+    fig.savefig(OUT/'process_comparison.png',dpi=180);fig.savefig(OUT/'process_comparison.pdf');plt.close(fig)
+    summary={'status':'complete','period':'2020-01-01 to 2023-04-30','simulation_days':len(date_range(SIMULATION_START,SIMULATION_END)),
+             'evaluation_days':len(expected),'evaluation_period':f'{EVALUATION_START} to {SIMULATION_END}',
+             'warmup':'2020','outlet_channel_ids':outlets,'total_area_ha':sum(areas.values()),
+             'total_area_km2':sum(areas.values())/100,
+             'coupled_area_ha':coupled_area,'coupled_hrus':sum(r['coupled'] for r in scope),
+             'total_hrus':len(scope),'regression':reg,'water_budget':budgets,'model_differences':differences,
+             'excluded_zero_area_scope_rows':excluded,
+             'units':{'outlet_flow':'m3/s; sum of terminal channel daily mean flows',
+                      'annual_depths':'mm accumulated over the reported dates; 2023 is partial',
+                      'daily_flux_depths':'mm per day; basin area means',
+                      'daily_storage_depths':'mm; basin area means',
+                      'water_budget':'mm liquid-water equivalent over the positive-area coupled domain only',
+                      'canopy_air_exchange_mm':'signed atmospheric water input caused by changes to canopy-air control volume',
+                      'retry_hours':'count of HRU hours requiring subdivision; not elapsed wall-clock hours',
+                      'max_hour_parts':'largest accepted subdivision count for one HRU hour'},
+             'interpretation':'Uncalibrated model differences, not observational skill scores; no discharge observations supplied.',
+             'runs':runs}
+    (OUT/'summary.json').write_text(json.dumps(summary,indent=2,allow_nan=False)+'\n')
+    status['status']='complete'
+    (OUT/'analysis_status.json').write_text(json.dumps(status,indent=2)+'\n')
+    print(json.dumps(summary,indent=2))
+
+if __name__=='__main__':main()

@@ -1,0 +1,1726 @@
+{
+  "official_source": "https://www.ars.usda.gov/pacific-west-area/boise-id/northwest-watershed-research-center/docs/shaw-model/",
+  "source_sha256": "b10bb45c984d7f9c1831f722fcd5a27f1d091ff08da4b6d838d2bcd51066a1fe",
+  "excluded_routines": [
+    "DAY2HR",
+    "DAYINP",
+    "ENERGY",
+    "FROST",
+    "INPUT",
+    "IOFILES",
+    "OUTPUT",
+    "PESTOUTPUT",
+    "SALTK",
+    "SHAW303",
+    "SNOWTEMP",
+    "SOLUTE",
+    "WBALNC"
+  ],
+  "included_routines": [
+    {
+      "routine": "GOSHAW",
+      "original_line": 215
+    },
+    {
+      "routine": "CONSTANTS",
+      "original_line": 1428
+    },
+    {
+      "routine": "CLOUDY",
+      "original_line": 3562
+    },
+    {
+      "routine": "CANOPY",
+      "original_line": 3611
+    },
+    {
+      "routine": "CANLAY",
+      "original_line": 3899
+    },
+    {
+      "routine": "CANLAYZC",
+      "original_line": 4077
+    },
+    {
+      "routine": "RTDIST",
+      "original_line": 4201
+    },
+    {
+      "routine": "RESIDUE",
+      "original_line": 4284
+    },
+    {
+      "routine": "SYSTM",
+      "original_line": 4384
+    },
+    {
+      "routine": "SWRBAL",
+      "original_line": 4484
+    },
+    {
+      "routine": "SOLAR",
+      "original_line": 4612
+    },
+    {
+      "routine": "SNOALB",
+      "original_line": 4734
+    },
+    {
+      "routine": "SWRSNO",
+      "original_line": 4791
+    },
+    {
+      "routine": "SWRCAN",
+      "original_line": 4830
+    },
+    {
+      "routine": "TRANSC",
+      "original_line": 5041
+    },
+    {
+      "routine": "TRANSR",
+      "original_line": 5133
+    },
+    {
+      "routine": "SOLVRAD",
+      "original_line": 5175
+    },
+    {
+      "routine": "UPDATE",
+      "original_line": 5253
+    },
+    {
+      "routine": "LWRBAL",
+      "original_line": 5314
+    },
+    {
+      "routine": "LWRCAN",
+      "original_line": 5399
+    },
+    {
+      "routine": "LWRATM",
+      "original_line": 5525
+    },
+    {
+      "routine": "LWRMAT",
+      "original_line": 5558
+    },
+    {
+      "routine": "SOURCE",
+      "original_line": 5683
+    },
+    {
+      "routine": "ATSTAB",
+      "original_line": 5728
+    },
+    {
+      "routine": "EBCAN",
+      "original_line": 5955
+    },
+    {
+      "routine": "LEAFT",
+      "original_line": 6082
+    },
+    {
+      "routine": "STOMATES",
+      "original_line": 6710
+    },
+    {
+      "routine": "CANHUM",
+      "original_line": 6770
+    },
+    {
+      "routine": "CANTK",
+      "original_line": 6814
+    },
+    {
+      "routine": "STAB",
+      "original_line": 7008
+    },
+    {
+      "routine": "EBSNOW",
+      "original_line": 7080
+    },
+    {
+      "routine": "QVSNOW",
+      "original_line": 7207
+    },
+    {
+      "routine": "SNOWTK",
+      "original_line": 7247
+    },
+    {
+      "routine": "SNOWHT",
+      "original_line": 7271
+    },
+    {
+      "routine": "EBRES",
+      "original_line": 7295
+    },
+    {
+      "routine": "RESVAP",
+      "original_line": 7396
+    },
+    {
+      "routine": "RESHUM",
+      "original_line": 7453
+    },
+    {
+      "routine": "RESTK",
+      "original_line": 7497
+    },
+    {
+      "routine": "RESVK",
+      "original_line": 7563
+    },
+    {
+      "routine": "QVRES",
+      "original_line": 7591
+    },
+    {
+      "routine": "RESHT",
+      "original_line": 7607
+    },
+    {
+      "routine": "QVSOIL",
+      "original_line": 7627
+    },
+    {
+      "routine": "ENHANC",
+      "original_line": 7682
+    },
+    {
+      "routine": "EBSOIL",
+      "original_line": 7720
+    },
+    {
+      "routine": "SOILTK",
+      "original_line": 7989
+    },
+    {
+      "routine": "SOILHT",
+      "original_line": 8103
+    },
+    {
+      "routine": "FSLOPE",
+      "original_line": 8146
+    },
+    {
+      "routine": "FROZEN",
+      "original_line": 8193
+    },
+    {
+      "routine": "ADJUST",
+      "original_line": 8332
+    },
+    {
+      "routine": "WBCAN",
+      "original_line": 8386
+    },
+    {
+      "routine": "SNOWBC",
+      "original_line": 8512
+    },
+    {
+      "routine": "WBRES",
+      "original_line": 8553
+    },
+    {
+      "routine": "WBSOIL",
+      "original_line": 8636
+    },
+    {
+      "routine": "SOILHK",
+      "original_line": 8896
+    },
+    {
+      "routine": "QLSOIL",
+      "original_line": 8977
+    },
+    {
+      "routine": "BACKUP",
+      "original_line": 8992
+    },
+    {
+      "routine": "SUMDT",
+      "original_line": 9191
+    },
+    {
+      "routine": "PRECP",
+      "original_line": 9330
+    },
+    {
+      "routine": "WTBULB",
+      "original_line": 9489
+    },
+    {
+      "routine": "NWSNOW",
+      "original_line": 9522
+    },
+    {
+      "routine": "WBSNOW",
+      "original_line": 9747
+    },
+    {
+      "routine": "META",
+      "original_line": 10060
+    },
+    {
+      "routine": "SNOMLT",
+      "original_line": 10114
+    },
+    {
+      "routine": "RAINC",
+      "original_line": 10302
+    },
+    {
+      "routine": "RAINRS",
+      "original_line": 10391
+    },
+    {
+      "routine": "RAINSL",
+      "original_line": 10449
+    },
+    {
+      "routine": "TDMA",
+      "original_line": 12081
+    },
+    {
+      "routine": "WEIGHT",
+      "original_line": 12108
+    },
+    {
+      "routine": "CONDUC",
+      "original_line": 12127
+    },
+    {
+      "routine": "VSLOPE",
+      "original_line": 12146
+    },
+    {
+      "routine": "MATVLC",
+      "original_line": 12174
+    },
+    {
+      "routine": "INVERFC",
+      "original_line": 12321
+    }
+  ],
+  "common_storage": {
+    "TIMEWT": {
+      "offset": 0,
+      "count": 6,
+      "fields": [
+        [
+          "WT",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WDT",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "DT",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "CONSTN": {
+      "offset": 6,
+      "count": 60,
+      "fields": [
+        [
+          "LF",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "LV",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "LS",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "G",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "UGAS",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RHOL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RHOI",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RHOM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RHOOM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RHOA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CI",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "COM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CV",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "VONKRM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "VDIFF",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PRESUR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "P0",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKI",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKRO",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKSA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKSI",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKCL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKOM",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "SLPARM": {
+      "offset": 66,
+      "count": 5942,
+      "fields": [
+        [
+          "RHOB",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "SATK",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "SATKLAT",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "SOILWRC",
+          "REAL",
+          "(99,10)",
+          1980
+        ],
+        [
+          "NSALT",
+          "INTEGER",
+          "",
+          1
+        ],
+        [
+          "SALTKQ",
+          "REAL",
+          "(10,99)",
+          1980
+        ],
+        [
+          "VAPCOF",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "VAPEXP",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "ROCK",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "SAND",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "SILT",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "CLAY",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "OM",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "IWRC",
+          "INTEGER",
+          "",
+          1
+        ]
+      ]
+    },
+    "MATRIX": {
+      "offset": 6008,
+      "count": 5600,
+      "fields": [
+        [
+          "A1",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "B1",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "C1",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "D1",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "A2",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "B2",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "C2",
+          "REAL",
+          "(350)",
+          700
+        ],
+        [
+          "D2",
+          "REAL",
+          "(350)",
+          700
+        ]
+      ]
+    },
+    "WINDV": {
+      "offset": 11608,
+      "count": 64,
+      "fields": [
+        [
+          "ZH",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZERO",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "USTAR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "STABLE",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CONRH",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CONRV",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZHLOG",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZMSUB",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZHSUB",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZERSUB",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WINDC",
+          "REAL",
+          "(11)",
+          22
+        ],
+        [
+          "WINDR",
+          "REAL",
+          "(10)",
+          20
+        ]
+      ]
+    },
+    "SV_GOSHAW": {
+      "offset": 11672,
+      "count": 3,
+      "fields": [
+        [
+          "NPRINT",
+          "INTEGER",
+          "",
+          1
+        ],
+        [
+          "MAXSTP",
+          "INTEGER",
+          "",
+          1
+        ],
+        [
+          "MINSTP",
+          "INTEGER",
+          "",
+          1
+        ]
+      ]
+    },
+    "SWRCOE": {
+      "offset": 11675,
+      "count": 10,
+      "fields": [
+        [
+          "SOLCON",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "DIFATM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "DIFRES",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "SNOCOF",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "SNOEXP",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "LWRCOF": {
+      "offset": 11685,
+      "count": 14,
+      "fields": [
+        [
+          "STEFAN",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EMATM1",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EMATM2",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EMITC",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EMITR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EMITSP",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EMITS",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "RSPARM": {
+      "offset": 11699,
+      "count": 8,
+      "fields": [
+        [
+          "RESMA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RESMB",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RESMC",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RESTKA",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "SPPROP": {
+      "offset": 11707,
+      "count": 18,
+      "fields": [
+        [
+          "G1",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "G2",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "G3",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "EXTSP",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKSPA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKSPB",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKSPEX",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "VDIFSP",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "VAPSPX",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "SPWATR": {
+      "offset": 11725,
+      "count": 18,
+      "fields": [
+        [
+          "CLAG1",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CLAG2",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CLAG3",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CLAG4",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PLWMAX",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PLWDEN",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PLWHC",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "THICK",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CTHICK",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "METASP": {
+      "offset": 11743,
+      "count": 12,
+      "fields": [
+        [
+          "CMET1",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CMET2",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CMET3",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CMET4",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CMET5",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "SNOMAX",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "CLAYRS": {
+      "offset": 11755,
+      "count": 3704,
+      "fields": [
+        [
+          "PLANTZ",
+          "REAL",
+          "(8)",
+          16
+        ],
+        [
+          "DRYCAN",
+          "REAL",
+          "(8,10)",
+          160
+        ],
+        [
+          "CANLAI",
+          "REAL",
+          "(8,10)",
+          160
+        ],
+        [
+          "TOTLAI",
+          "REAL",
+          "(8)",
+          16
+        ],
+        [
+          "IEVAP",
+          "INTEGER",
+          "(8)",
+          8
+        ],
+        [
+          "RLEAF",
+          "REAL",
+          "(8,10)",
+          160
+        ],
+        [
+          "RROOT",
+          "REAL",
+          "(8,99)",
+          1584
+        ],
+        [
+          "ROOTDN",
+          "REAL",
+          "(8,99)",
+          1584
+        ],
+        [
+          "TOTROT",
+          "REAL",
+          "(8)",
+          16
+        ]
+      ]
+    },
+    "WRITEIT": {
+      "offset": 15459,
+      "count": 170,
+      "fields": [
+        [
+          "HFLUX1",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "RH",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "HNC",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "XLENC",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CONTK",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TLEAF",
+          "REAL",
+          "(8,10)",
+          160
+        ]
+      ]
+    },
+    "SV_CANOPY": {
+      "offset": 15629,
+      "count": 362,
+      "fields": [
+        [
+          "ZZC",
+          "REAL",
+          "(11)",
+          22
+        ],
+        [
+          "DZCAN",
+          "REAL",
+          "(10)",
+          20
+        ],
+        [
+          "DDRYCAN",
+          "REAL",
+          "(8,10)",
+          160
+        ],
+        [
+          "CCANLAI",
+          "REAL",
+          "(8,10)",
+          160
+        ]
+      ]
+    },
+    "SV_CANLAYZC": {
+      "offset": 15991,
+      "count": 21,
+      "fields": [
+        [
+          "MZC",
+          "INTEGER",
+          "",
+          1
+        ],
+        [
+          "ZMID",
+          "REAL",
+          "(10)",
+          20
+        ]
+      ]
+    },
+    "RADCAN": {
+      "offset": 16012,
+      "count": 432,
+      "fields": [
+        [
+          "TDIRCC",
+          "REAL",
+          "(10)",
+          20
+        ],
+        [
+          "TDIFFC",
+          "REAL",
+          "(10)",
+          20
+        ],
+        [
+          "DIRKL",
+          "REAL",
+          "(9,10)",
+          180
+        ],
+        [
+          "DIFKL",
+          "REAL",
+          "(9,10)",
+          180
+        ],
+        [
+          "FBDU",
+          "REAL",
+          "(8)",
+          16
+        ],
+        [
+          "FDDU",
+          "REAL",
+          "(8)",
+          16
+        ]
+      ]
+    },
+    "RADRES": {
+      "offset": 16444,
+      "count": 40,
+      "fields": [
+        [
+          "TDIREC",
+          "REAL",
+          "(10)",
+          20
+        ],
+        [
+          "TDIFFU",
+          "REAL",
+          "(10)",
+          20
+        ]
+      ]
+    },
+    "SV_ATSTAB": {
+      "offset": 16484,
+      "count": 12,
+      "fields": [
+        [
+          "TMPAIR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "VAPAIR",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZMLOG",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "ZCLOG",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PSIM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PSIH",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "SV_LEAFT": {
+      "offset": 16496,
+      "count": 504,
+      "fields": [
+        [
+          "INIT",
+          "INTEGER",
+          "(8)",
+          8
+        ],
+        [
+          "PXYLEM",
+          "REAL",
+          "(8)",
+          16
+        ],
+        [
+          "RHCAN",
+          "REAL",
+          "(8,10)",
+          160
+        ],
+        [
+          "RVCAN",
+          "REAL",
+          "(8,10)",
+          160
+        ],
+        [
+          "ETCAN",
+          "REAL",
+          "(8,10)",
+          160
+        ]
+      ]
+    },
+    "SV_CANTK": {
+      "offset": 17000,
+      "count": 2,
+      "fields": [
+        [
+          "ZMLOG",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "SV_EBSNOW": {
+      "offset": 17002,
+      "count": 1200,
+      "fields": [
+        [
+          "QVSPT",
+          "REAL",
+          "(200)",
+          400
+        ],
+        [
+          "CON",
+          "REAL",
+          "(200)",
+          400
+        ],
+        [
+          "CSPT",
+          "REAL",
+          "(200)",
+          400
+        ]
+      ]
+    },
+    "RESIDU": {
+      "offset": 18202,
+      "count": 40,
+      "fields": [
+        [
+          "EVAP",
+          "REAL",
+          "(10)",
+          20
+        ],
+        [
+          "EVAPK",
+          "REAL",
+          "(10)",
+          20
+        ]
+      ]
+    },
+    "SV_EBRES": {
+      "offset": 18242,
+      "count": 20,
+      "fields": [
+        [
+          "CREST",
+          "REAL",
+          "(10)",
+          20
+        ]
+      ]
+    },
+    "SPHEAT": {
+      "offset": 18262,
+      "count": 198,
+      "fields": [
+        [
+          "CS",
+          "REAL",
+          "(99)",
+          198
+        ]
+      ]
+    },
+    "SV_EBSOIL": {
+      "offset": 18460,
+      "count": 792,
+      "fields": [
+        [
+          "QSVT",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "QSLT",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "TKT",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "CST",
+          "REAL",
+          "(99)",
+          198
+        ]
+      ]
+    },
+    "SV_SOILTK": {
+      "offset": 19252,
+      "count": 31,
+      "fields": [
+        [
+          "IFIRST",
+          "INTEGER",
+          "",
+          1
+        ],
+        [
+          "WFAIRD",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFROD",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFSAD",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFSID",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFCLD",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFOMD",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFICED",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "TKMA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFRO",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFSA",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFSI",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFCL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFOM",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "WFICE",
+          "REAL",
+          "",
+          2
+        ]
+      ]
+    },
+    "SV_WBSOIL": {
+      "offset": 19283,
+      "count": 396,
+      "fields": [
+        [
+          "QSLT",
+          "REAL",
+          "(99)",
+          198
+        ],
+        [
+          "QSVT",
+          "REAL",
+          "(99)",
+          198
+        ]
+      ]
+    },
+    "SV_SUMDT": {
+      "offset": 19679,
+      "count": 16,
+      "fields": [
+        [
+          "TRANSP",
+          "REAL",
+          "(8)",
+          16
+        ]
+      ]
+    },
+    "SV_SNOMLT": {
+      "offset": 19695,
+      "count": 2,
+      "fields": [
+        [
+          "IFIRST",
+          "INTEGER",
+          "",
+          1
+        ],
+        [
+          "NLAG",
+          "INTEGER",
+          "",
+          1
+        ]
+      ]
+    },
+    "SV_RAINSL": {
+      "offset": 19697,
+      "count": 200,
+      "fields": [
+        [
+          "PSATK",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "PSAT",
+          "REAL",
+          "(99)",
+          198
+        ]
+      ]
+    },
+    "RESULT": {
+      "offset": 19897,
+      "count": 640,
+      "fields": [
+        [
+          "RESULT",
+          "REAL",
+          "(320)",
+          640
+        ]
+      ]
+    },
+    "OPTIONS": {
+      "offset": 20537,
+      "count": 3,
+      "fields": [
+        [
+          "CANOPY_WATER_TOL",
+          "REAL",
+          "",
+          2
+        ],
+        [
+          "CANOPY_JACOBIAN",
+          "INTEGER",
+          "",
+          1
+        ]
+      ]
+    }
+  },
+  "state_words": 20540,
+  "implicit_saved_data": {
+    "RAINSL": [
+      "PSATK",
+      "PSAT"
+    ]
+  },
+  "diagnostic_array_contract": "Zero-pad all outputs; copy only initialized TOTFLO/TOTLAT/ROOTXT(1:NS).",
+  "canopy_air_exchange": {
+    "result_index": 318,
+    "units": "m water equivalent",
+    "sign": "Positive adds canopy air-vapor storage; negative removes it.",
+    "original_sites": [
+      {
+        "original_line": 340,
+        "kind": "call"
+      },
+      {
+        "original_line": 348,
+        "kind": "remove"
+      },
+      {
+        "original_line": 383,
+        "kind": "call"
+      },
+      {
+        "original_line": 390,
+        "kind": "remove"
+      },
+      {
+        "original_line": 1367,
+        "kind": "call"
+      }
+    ],
+    "method": "Sum air-vapor storage after minus before each CANOPY call and explicit NC=0 using WBCAN residual control-volume widths; observation only."
+  },
+  "optional_canopy_jacobian": {
+    "option": "options_canopy_jacobian",
+    "default": 0,
+    "meaning": "Nonzero uses the same single-node/bottom canopy storage widths in diagonal Jacobians and residuals.",
+    "transforms": [
+      {
+        "routine": "EBCAN",
+        "original_line": 6003,
+        "condition": "NC .EQ. 1",
+        "original_statement": "B1(N)=B1(N) - (CON(1)+DHEATC(1)*(1.-DTLDTC(1)))             - (ZC(2)-ZC(1))/(2.*DT)*RHOA*CA",
+        "corrected_statement": "B1(N)=B1(N)-(CON(1)+DHEATC(1)*(1.-DTLDTC(1)))-(ZC(2)-ZC(1))/DT*RHOA*CA"
+      },
+      {
+        "routine": "EBCAN",
+        "original_line": 6019,
+        "condition": "J .EQ. NC",
+        "original_statement": "B1(I)=B1(I) - (CON(J-1) +CON(J) +DHEATC(J)*(1.-DTLDTC(J)))                - (ZC(J+1)-ZC(J-1))/(2.*DT)*RHOA*CA",
+        "corrected_statement": "B1(I)=B1(I)-(CON(J-1)+CON(J)+DHEATC(J)*(1.-DTLDTC(J)))-(ZC(J+1)-ZC(J)+(ZC(J)-ZC(J-1))/2.)/DT*RHOA*CA"
+      },
+      {
+        "routine": "WBCAN",
+        "original_line": 8438,
+        "condition": "NC .EQ. 1",
+        "original_statement": "B2(N)=B2(N) - (CON(1) + DETLYR(1)) - (ZC(2)-ZC(1))/2/DT",
+        "corrected_statement": "B2(N)=B2(N)-(CON(1)+DETLYR(1))-(ZC(2)-ZC(1))/DT"
+      },
+      {
+        "routine": "WBCAN",
+        "original_line": 8453,
+        "condition": "J .EQ. NC",
+        "original_statement": "B2(I)=-(CON(J-1) + CON(J) + DETLYR(J))          - (ZC(J+1)-ZC(J-1))/2/DT",
+        "corrected_statement": "B2(I)=-(CON(J-1)+CON(J)+DETLYR(J))-(ZC(J+1)-ZC(J)+(ZC(J)-ZC(J-1))/2.)/DT"
+      }
+    ]
+  },
+  "optional_leaf_elimination": {
+    "option": "options_canopy_jacobian",
+    "original_line": 6494,
+    "original": "F1(I)=F1(I)-(DF1DT(I)/DF2DT(I))*F1(I)",
+    "corrected": "F1(I)=F1(I)-(DF1DT(I)/DF2DT(I))*F2(I)"
+  },
+  "optional_iteration_extension": {
+    "option": "options_canopy_jacobian",
+    "max_iterations_without_forced_refinement": 40,
+    "convergence_criteria": "unchanged; native large-increment guards still force time refinement"
+  },
+  "contract": "64-bit default REAL, 32-bit INTEGER/LOGICAL; packed COMMON; serial load/call/save; no solute or CO2 simulation"
+}
