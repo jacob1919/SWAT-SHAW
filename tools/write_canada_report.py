@@ -80,7 +80,7 @@ def validate(summary, status, annual, daily, run_root=None):
             raise ValueError(f'Water-budget acceptance limit exceeded: {period}')
 
 
-def render_report(summary, annual, daily, kernel, ames, hashes):
+def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, guard=None):
     area = number(summary['total_area_km2'])
     coupled_area = number(summary['coupled_area_ha'])
     fraction = 100 * coupled_area / number(summary['total_area_ha'])
@@ -113,6 +113,18 @@ def render_report(summary, annual, daily, kernel, ames, hashes):
             '基准' if mode == 'official' else fmt(rmse, 6)])
     evaluation_table = table(['模型', '评价期平均 Q（m³/s）', '出口累计径流深（mm）',
                                '平均 Q 相对原始版变化', '日 Q 与原始版的 RMSE（m³/s）'], comparison)
+    flux_findings=[]
+    for field,label in (('et','净蒸散'),('surq_gen','地表产流'),('perc','底部渗漏')):
+        original=sum(number(r['official_'+field+'_mm']) for r in daily)
+        coupled=sum(number(r['shaw_'+field+'_mm']) for r in daily)
+        percent='原始值为零，未计算百分比' if original==0 else f'变化 {100*(coupled/original-1):+.2f}%'
+        flux_findings.append(f'- 评价期累计{label}：原始版 {fmt(original)} mm，SHAW 耦合版 {fmt(coupled)} mm（{percent}）。')
+    process_findings='\n'.join(flux_findings)
+    thermal_table = table(['模型','第二土层平均 T（°C）','最低 T（°C）','最高 T（°C）','面平均 T < 0°C 的天数'],
+        [[LABELS[mode],fmt(summary['soil_thermal_response'][mode]['mean_soil_layer2_C']),
+          fmt(summary['soil_thermal_response'][mode]['min_soil_layer2_C']),
+          fmt(summary['soil_thermal_response'][mode]['max_soil_layer2_C']),
+          summary['soil_thermal_response'][mode]['days_basin_mean_layer2_below_zero']] for mode in MODES])
     budget_rows = []
     retry_rows = []
     for key, label in PERIODS.items():
@@ -158,6 +170,15 @@ def render_report(summary, annual, daily, kernel, ames, hashes):
         test_lines.append(f"另行由固定官方可执行文件生成的 Ames 结果，在 {len(ames['checks'])} 个指定输出文件中"
                           '与关闭耦合版一致。仓库历史 golden 输出本身与该官方版本存在差异；原有 Ames golden CTest '
                           '仍报告失败，不能称整个 CTest 全部通过。')
+    if parity and parity.get('status') == 'pass':
+        test_lines.append(f"完整流域与单独 HRU 运行的交叉检查：HRU {', '.join(map(str,parity['hrus']))} "
+                          f"共 {parity['daily_rows_compared']:,} 个逐日记录、每行 {parity['columns_per_row']} 列完全一致。"
+                          '比较包括状态、通量和重试计数；该案例的这些 HRU 没有上游 HRU 来水，因而应当一致。')
+    if guard and guard.get('status') == 'pass':
+        replay=guard['corrected_replay']
+        test_lines.append(f"原生最小步长处保留六处大幅更新保护，越界尝试完整回退。HRU 19 的旧失败小时"
+                          f"现用 {replay['parts']} 个分段通过，水量残差 {fmt(replay['water_residual_mm'],9)} mm；"
+                          '详见最小步长保护复查记录。')
     if not kernel:
         test_lines.append('未找到 kernel_checks.json；本报告不新增内核试验通过的断言。')
     run_rows = []
@@ -175,6 +196,8 @@ def render_report(summary, annual, daily, kernel, ames, hashes):
 
 {scope}
 
+本次重新核对了此前报告的基础口径：旧报告把面积的 ha 数值标为 km²，并将该起止日期的模拟天数写为 1,456；本报告采用输入面积换算后的 15.1818012 km² 和按日历计算的 1,216 天。旧报告文件保留原样。
+
 2020 年的 366 天作为预热，评价期为 **2021-01-01 至 2023-04-30，共 850 天**。2023 年仅含 1–4 月的 120 天，年度累计量不能与完整年度直接比较。该案例代表加拿大季节性冻土环境，不应据此外推多年冻土区。
 
 案例来自用户此前使用的 [SWAT+ 用户组加拿大数据](https://groups.google.com/g/swatplus/c/lnI2RShJmZw)。三个版本采用相同的 79 个输入文件，沿用此前土壤水文组数字 `3 → C` 的修正，并统一日输出设置；输入 SHA256 清单保存在本机 `validation/canada/input_manifest.json`。原始 AWC 数值问题由共同的 SWAT+ 初始化规则处理，仍是参数解释的限制。
@@ -190,6 +213,12 @@ def render_report(summary, annual, daily, kernel, ames, hashes):
 出口累计径流深由日平均流量积分并除以整个流域面积得到；它包含流域汇流后的贡献，不等于 HRU 地表产流。表中的 RMSE 衡量两个模拟序列的差异，不是相对实测的误差，也不是模型优劣排名。
 
 {table(['模型', '评价期最大日平均 Q（m³/s）', '发生日期'], peaks)}
+
+SHAW 耦合版相对原始版的水量分配变化：
+
+{process_findings}
+
+这些差异同时包含冠层、积雪、土壤水热及产流算法的替换效应。尤其是把日雨均匀分为小时输入、由 CN 法转为 SHAW 入渗和地表积水过程，会影响径流与渗漏的分配；本次试验不能把变化全部归为冻融效应。
 
 ## 年度过程量
 
@@ -208,6 +237,18 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 ![冬春出口流量与积雪](winter_spring_comparison.png)
 
 [冬春绘图 PDF](winter_spring_comparison.pdf)
+
+## 土温与土壤冰
+
+{thermal_table}
+
+土温来自三个版本共同输出的 `basin_pw_day.txt: sol_tmp`，源代码均取 `soil(j)%phys(2)%tmp` 后按流域面积汇总，即 **SWAT+ 第二土层温度**，不是地表温度，也不代表全流域统一物理深度。温度低于零的天数按日输出精度判定，指面平均序列过零，不能解释为所有 HRU 的冻结持续天数或冻土面积比例。
+
+![第二土层温度与 SHAW 土壤冰储量](thermal_comparison.png)
+
+[土温与冰储量绘图 PDF](thermal_comparison.pdf)
+
+下半图仅显示 SHAW 耦合域的土壤冰水当量，不含积雪；评价期最大耦合域平均土壤冰储量为 {fmt(summary['water_budget']['evaluation']['max_coupled_area_ice_water_mm'])} mm。当前原始版及既有冻融版运行没有同口径土壤冰输出，因此不构造其冰量曲线。逐日温度及冰量与水文量一同写入逐日 CSV。
 
 ## 耦合域水量收支与数值重试
 
@@ -262,7 +303,7 @@ def main():
         daily = list(csv.DictReader(f))
     validate(summary, status, annual, daily, ROOT / 'validation/canada')
     for name in ('process_comparison.png', 'process_comparison.pdf','seasonal_comparison.csv',
-                 'winter_spring_comparison.png','winter_spring_comparison.pdf'):
+                 'winter_spring_comparison.png','winter_spring_comparison.pdf','thermal_comparison.png','thermal_comparison.pdf'):
         if not (directory / name).is_file() or (directory / name).stat().st_size == 0:
             raise ValueError(f'Report withheld: missing comparison plot {name}')
     kernel_path = directory / 'kernel_checks.json'
@@ -271,10 +312,22 @@ def main():
     if kernel and kernel.get('coupled_executable_sha256') != summary['runs']['shaw']['sha256']:
         raise ValueError('Report withheld: kernel checks refer to a different coupled executable')
     ames = load_json(ames_path) if ames_path.exists() else {}
+    if ames.get('coupling_off_run',{}).get('sha256') not in (None,summary['runs']['shaw']['sha256']):
+        raise ValueError('Report withheld: Ames check refers to a different coupled executable')
+    parity_path=directory/'basin_column_parity.json'
+    parity=load_json(parity_path) if parity_path.exists() else None
+    if parity and (parity.get('status')!='pass' or parity.get('coupled_executable_sha256')!=summary['runs']['shaw']['sha256']):
+        raise ValueError('Report withheld: basin/isolated-column check is stale or unsuccessful')
+    guard_path=directory/'minimum_step_guard_check.json'
+    guard=load_json(guard_path) if guard_path.exists() else None
+    if guard and (guard.get('status')!='pass' or guard['complete_isolated_run']['executable_sha256']!=summary['runs']['shaw']['sha256']):
+        raise ValueError('Report withheld: minimum-step check is stale or unsuccessful')
     names = ['summary.json', 'analysis_status.json', 'annual_comparison.csv', 'daily_comparison.csv','seasonal_comparison.csv']
     names += [p.name for p in (kernel_path, ames_path) if p.exists()]
+    if parity:names.append(parity_path.name)
+    if guard:names.append(guard_path.name)
     hashes = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in names}
-    report = render_report(summary, annual, daily, kernel, ames, hashes)
+    report = render_report(summary, annual, daily, kernel, ames, hashes, parity, guard)
     output = directory / 'REPORT.md'
     output.write_text(report, encoding='utf-8')
     print(output)

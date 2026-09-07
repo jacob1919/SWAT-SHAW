@@ -39,7 +39,7 @@ def main():
         'corrected_path':{'soil_tolerance':1.e-4,'canopy_relative_vapor_tolerance':1.e-3,
             'canopy_storage_jacobian_correction':True,'leaf_F2_elimination_correction':True,
             'max_iterations_without_forced_refinement':40,'conductance_derivative_retry':True,
-            'consistent_root_active_set':True,'maximum_external_hour_parts':64}}
+            'consistent_root_active_set':True,'maximum_external_hour_parts':64,'minimum_native_step_large_update_guards':6}}
     target=ROOT/'reports/canada/kernel_checks.json'
     target.write_text(json.dumps(result,indent=2)+'\n')
     print(f'Recorded four SHAW fixtures and original-reference parity for {off["sha256"]}')

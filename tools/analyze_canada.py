@@ -127,15 +127,14 @@ def water_budget(scope):
             'retried_hru_hours_percent':100*retries/(rows*24),
             'hru_days_requiring_retry':int(sum(d['hru_days_requiring_retry'] for d in days)),
             'max_hour_parts':int(max(d['max_hour_parts'] for d in days))}
-    return result
+    return result,by_day
 
 def read_output(path):
     with path.open() as f:
         next(f);headers=next(f).split();next(f)
-        # output_waterbal_header includes two HRU-only text headings, while
-        # basin_output writes only the numeric output_waterbal type (wet_stor
-        # is its last component). Remove this exact, verified trailing pair.
-        if path.name=='basin_wb_day.txt' and headers[-2:]==['plant_cov','mgt_ops']:
+        # Basin writers omit the HRU-only plant/management text fields that
+        # their shared water-balance and plant/weather headings still include.
+        if path.name in ('basin_wb_day.txt','basin_pw_day.txt') and headers[-2:]==['plant_cov','mgt_ops']:
             headers=headers[:-2]
         rows=[]
         for line in f:
@@ -214,6 +213,7 @@ def main():
                          '\nAny existing comparison artifacts describe an earlier run; inspect analysis_status.json.')
     outlets=outlet_ids()
     wb={m:read_output(DATA/m/'basin_wb_day.txt') for m in MODES}
+    pw={m:read_output(DATA/m/'basin_pw_day.txt') for m in MODES}
     flow={m:defaultdict(float) for m in MODES}
     for mode in MODES:
         seen=set()
@@ -231,14 +231,17 @@ def main():
     assert dates==expected
     for mode in MODES:
         assert [r['date'] for r in wb[mode]]==dates
+        assert [r['date'] for r in pw[mode]]==dates
         assert sorted(flow[mode])==dates
         if any(a['precip']!=b['precip'] for a,b in zip(wb['official'],wb[mode])):
             raise ValueError(f'Basin precipitation differs despite identical raw input files: {mode}')
+        if any(a['tmpav']!=b['tmpav'] for a,b in zip(pw['official'],pw[mode])):
+            raise ValueError(f'Basin air temperature differs: {mode}')
     # Validate the complete diagnostic record before publishing comparative metrics.
     scope,excluded=read_scope()
     areas={r['hru']:r['area_ha'] for r in scope}
     coupled_area=sum(r['area_ha'] for r in scope if r['coupled'])
-    budgets=water_budget(scope)
+    budgets,budget_days=water_budget(scope)
     annual=[]
     for mode in MODES:
         for year in (2021,2022,2023):
@@ -257,8 +260,11 @@ def main():
     daily=[]
     for i,date in enumerate(dates):
         row={'date':str(date)}
+        row['air_temperature_C']=pw['official'][i]['tmpav']
+        row['shaw_coupled_soil_ice_mm']=budget_days[date]['ice_mm']
         for mode in MODES:
             row[mode+'_outlet_m3s']=flow[mode][date]
+            row[mode+'_soil_layer2_C']=pw[mode][i]['sol_tmp']
             for field in ('surq_gen','latq','perc','et','snopack','sw_final'):
                 row[mode+'_'+field+'_mm']=wb[mode][i][field]
         daily.append(row)
@@ -302,17 +308,37 @@ def main():
     fig.suptitle('Winter–spring process comparison: January–May windows\nUncalibrated model results; no observed discharge supplied')
     fig.savefig(OUT/'winter_spring_comparison.png',dpi=180)
     fig.savefig(OUT/'winter_spring_comparison.pdf');plt.close(fig)
+    fig,axs=plt.subplots(2,1,figsize=(12,6),sharex=True,layout='constrained')
+    axs[0].plot(dates,[r['tmpav'] for r in pw['official']],color='.65',lw=.6,label='Daily mean air')
+    for mode in MODES:
+        axs[0].plot(dates,[r['sol_tmp'] for r in pw[mode]],lw=1.,label=labels[mode])
+    axs[0].axhline(0,color='.25',ls='--',lw=.7)
+    axs[0].set_ylabel('Basin mean layer-2 soil T (°C)');axs[0].legend(ncol=2,fontsize=8)
+    axs[1].fill_between(dates,[budget_days[d]['ice_mm'] for d in dates],color='tab:blue',alpha=.65)
+    axs[1].set_ylabel('Soil ice water equivalent (mm)')
+    axs[1].set_title('SHAW soil ice only: mean over the 123 coupled HRUs',fontsize=10)
+    for ax in axs:ax.grid(alpha=.2)
+    fig.suptitle('Soil thermal response and SHAW ice storage\nModel diagnostics; no observed soil temperature or ice supplied')
+    fig.savefig(OUT/'thermal_comparison.png',dpi=180)
+    fig.savefig(OUT/'thermal_comparison.pdf');plt.close(fig)
+    thermal={mode:{'mean_soil_layer2_C':float(np.mean([r['sol_tmp'] for r in pw[mode]])),
+        'min_soil_layer2_C':min(r['sol_tmp'] for r in pw[mode]),
+        'max_soil_layer2_C':max(r['sol_tmp'] for r in pw[mode]),
+        'days_basin_mean_layer2_below_zero':sum(r['sol_tmp']<0 for r in pw[mode])} for mode in MODES}
     summary={'status':'complete','period':'2020-01-01 to 2023-04-30','simulation_days':len(date_range(SIMULATION_START,SIMULATION_END)),
              'evaluation_days':len(expected),'evaluation_period':f'{EVALUATION_START} to {SIMULATION_END}',
              'warmup':'2020','outlet_channel_ids':outlets,'total_area_ha':sum(areas.values()),
              'total_area_km2':sum(areas.values())/100,
              'coupled_area_ha':coupled_area,'coupled_hrus':sum(r['coupled'] for r in scope),
              'total_hrus':len(scope),'regression':reg,'water_budget':budgets,'model_differences':differences,
+             'soil_thermal_response':thermal,
              'excluded_zero_area_scope_rows':excluded,
              'units':{'outlet_flow':'m3/s; sum of terminal channel daily mean flows',
                       'annual_depths':'mm accumulated over the reported dates; 2023 is partial',
                       'daily_flux_depths':'mm per day; basin area means',
                       'daily_storage_depths':'mm; basin area means',
+                      'soil_layer2_C':'area mean of SWAT soil(j)%phys(2)%tmp; not surface temperature or a uniform physical depth across HRUs',
+                      'shaw_coupled_soil_ice_mm':'liquid-water equivalent of soil ice over the 123 coupled HRUs only; excludes snow',
                       'water_budget':'mm liquid-water equivalent over the positive-area coupled domain only',
                       'canopy_air_exchange_mm':'signed atmospheric water input caused by changes to canopy-air control volume',
                       'retry_hours':'count of HRU hours requiring subdivision or the additional conductance Jacobian; not elapsed wall-clock hours',

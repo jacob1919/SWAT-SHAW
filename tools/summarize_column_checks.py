@@ -17,7 +17,7 @@ def main():
     assert off['exit_code']==0
     result={'scope':'Isolated HRU checks; other HRUs use original SWAT+. Not the full basin comparison.',
             'executable_sha256':off['sha256'],'hrus':{}}
-    for hru in (1,6,98):
+    for hru in (1,6,19,98):
         directory=ROOT/f'validation/canada/debug_hru_{hru}'
         metadata=json.loads((directory/'run.json').read_text())
         assert metadata['exit_code']==0 and metadata['executable_sha256']==off['sha256']
@@ -60,7 +60,7 @@ def main():
                 a=sum(float(r[k]) for r in old);b=summary['totals_mm'][k]
                 changes[k]={'before_conductance_retry_and_root_fix':a,'current':b,'percent_change':100*(b-a)/a}
             summary['limited_strategy_sensitivity']={'baseline_csv_sha256':digest(old_path),
-                'scope':'Same HRU, forcing and selected tolerances; before versus after optional conductance-Jacobian retry and root active-set correction. Not grid/time convergence or field skill.',
+                'scope':'Same HRU, forcing and selected tolerances; before versus after conductance-Jacobian retry, root active-set correction and minimum-step safeguards. Not grid/time convergence or field skill.',
                 'totals':changes,'max_daily_topsoil_temperature_difference_C':
                     max(abs(float(a['tsoil_C'])-float(b['tsoil_C'])) for a,b in zip(old,rows))}
         result['hrus'][str(hru)]=summary

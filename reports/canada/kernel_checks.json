@@ -1,5 +1,5 @@
 {
-  "coupled_executable_sha256": "9ca7c39c84922811f55e07c693b68912a7e1079a9acc5c178a0f5975b3a05a87",
+  "coupled_executable_sha256": "572afdb01e01fc300ca48229e270d3c1da8bd8357a3c69d6dbe8137cac53e17c",
   "source_sha256": {
     "src/shaw/CMakeLists.txt": "5539974c6087f57e2eb3bb52b7e656b42af0d49b362c5287846640ab7f2ffe9c",
     "src/shaw/shaw_canopy_jacobian.f90": "6250fd515c309d9cddb007fd108895876eb0e9c7fa46f59f23672d6e3c6e985b",
@@ -8,20 +8,20 @@
     "src/shaw/shaw_common_access.f90": "0bddd90dffe8c371c188da82b90d0cefee957d200eed326dad53bfcf7d1746bf",
     "src/shaw/shaw_legacy_state.f90": "40a41b3813dd18c1d75a06bac12c46a75d7542a2822b9a60483fe50db32045e7",
     "src/shaw/shaw_root_partition.f90": "75ac1cfad8e3ac8396e4c601270920d772b5eb292f4b85b82a4a50d41884bbfc",
-    "src/shaw/shaw_water_heat.for": "a87cb532b136871e6d5d991f40f720bb26e12062e877ea0b992b7c798ae5f242",
-    "src/shaw_swat_module.f90": "07a4031e3d899fc9febaabfa0bd3b641947f07c4d6653fe95b76133b0b921ea1",
+    "src/shaw/shaw_water_heat.for": "f473719c85dd1ce2f8aaded50a446b9483e626da9594b0e0d696801e8d13cb70",
+    "src/shaw_swat_module.f90": "f3f859a4b6d6321520daab2fd9974add26e03f2bd614e806632625e39f4165d4",
     "src/hru_control.f90": "dc0264a985046c366499241211791f2f608d4ad067e53954a00e6548bb58066a",
     "src/surface.f90": "423d862ff55b2c73a88ff62aad79b3ce2e57b3ebf6be76777a9babc8276fc4e4",
     "src/pl_waterup.f90": "dee6a101129a0ce677ba8525df1b451cfc003ccd51e103482009a2eae5fc6ea3"
   },
-  "ctest_log_sha256": "b5e383ceef5fd46bcd80a8d73cf87c22b01c664ff95487190858953894ad91a6",
+  "ctest_log_sha256": "409e8dc26450cecb0a32872bdfc445f0b4b38d05885735f5dc736fe75e287083",
   "shaw_tests_passed": 4,
   "fixture_executable_sha256": {
-    "test_shaw_columns": "6dd26689a6f893ca65191ea7f8a88fe5c577a84309401c638a7ea9cabc54a07a",
-    "test_shaw_canopy": "b8d44bab72a6253c032973c2045467aaf6666828e237a1ef9d26b38aff54dd8c",
-    "test_shaw_conductance": "64866af494ad7c35abc3e6633e8bd8508186fca559328a8ed6bcb409ec6d643b",
-    "test_shaw_roots": "f21554f602ebbf47e643f3e464cad814723090e44f96b514592e524d40063e9b",
-    "ported_shaw_reference": "8fcd1860b3c12595506c8fec93f8604200945c4e77faef62cd767e0e46029a82"
+    "test_shaw_columns": "821ebd2ef0b72278fa8b3ad7b2db0b640f37f0672572d3af43db653c2f61df2a",
+    "test_shaw_canopy": "e260e2befe18dfb249f34c0e0d9c9ed9ba9e8a6d3922c9b68e4a92a7aeb83fe4",
+    "test_shaw_conductance": "a0e0e6e4af2e225687a45f6107b8a3b711a20941af874a4774173ecc36bd39a0",
+    "test_shaw_roots": "2647d415dbb5f75fe37472bdd98fe96453d9f855b5ee76327bf91590cef993a9",
+    "ported_shaw_reference": "8d50a0a6f515ac16bf4ad3713d4ef3cc482f7946877d515d3798fb6e24cbf71e"
   },
   "persistent_state": {
     "blocks": 34,
@@ -68,6 +68,7 @@
     "max_iterations_without_forced_refinement": 40,
     "conductance_derivative_retry": true,
     "consistent_root_active_set": true,
-    "maximum_external_hour_parts": 64
+    "maximum_external_hour_parts": 64,
+    "minimum_native_step_large_update_guards": 6
   }
 }

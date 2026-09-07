@@ -1,0 +1,63 @@
+{
+  "status": "pass",
+  "failure": {
+    "hru": 19,
+    "year": 2022,
+    "jday": 196,
+    "hour": 16,
+    "prior_isolated_run": {
+      "hru": 19,
+      "directory": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\validation\\canada\\debug_hru_19",
+      "exit_code": 65,
+      "seconds": 46.25,
+      "executable_sha256": "ce28305b5242976b929fc45ba0d6cea14cd5059b9fd02c2b2ac70e4b3f327bec",
+      "completed_utc": "2026-09-07T13:36:40.260260+00:00",
+      "scope": "Only this HRU uses SHAW; diagnostic run, not the basin comparison."
+    },
+    "invalid_trial_soil_temperature_C": 7600.08117041761,
+    "invalid_operation": "SQRT of adjacent vapor-transport coefficient product in CONDUC, called by QVSOIL/WBSOIL",
+    "accepted_state_claim": false
+  },
+  "snapshot": {
+    "bytes": 120600,
+    "sha256": "97f763a1634ac7e9b26c0cae545d27ff65a5892dba4babab62669e62548bedcd",
+    "scope": "Local modeled column state; binary replay requires the matching compiler and 34-block layout."
+  },
+  "corrected_replay": {
+    "parts": 2,
+    "surface_node_temperature_C": 21.3805863406538,
+    "surface_node_liquid_volume_fraction": 0.221700686942065,
+    "surface_node_ice_volume_fraction": 0.0,
+    "water_residual_mm": -0.00011639949243537,
+    "net_et_mm": 0.387876740033168,
+    "replay_executable_sha256": "02ce25f28f0f991f7c54a4f18d050051b50ad32c035496118fed55b53cddd6ee"
+  },
+  "complete_isolated_run": {
+    "hru": 19,
+    "directory": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\validation\\canada\\debug_hru_19",
+    "exit_code": 0,
+    "seconds": 58.062999999994645,
+    "executable_sha256": "572afdb01e01fc300ca48229e270d3c1da8bd8357a3c69d6dbe8137cac53e17c",
+    "completed_utc": "2026-09-07T13:49:41.887151+00:00",
+    "scope": "Only this HRU uses SHAW; diagnostic run, not the basin comparison."
+  },
+  "method": "Retain the six existing large-update limits at the native timestep floor; reject the whole call before the invalid update and let the adapter restore/subdivide the hour. No temperature clipping or tolerance relaxation.",
+  "earlier_trajectory_checks": {
+    "1": {
+      "days_compared": 1216,
+      "equal_to_pre_guard_prefix": true
+    },
+    "6": {
+      "days_compared": 1216,
+      "equal_to_pre_guard_prefix": true
+    },
+    "19": {
+      "days_compared": 926,
+      "equal_to_pre_guard_prefix": true
+    },
+    "98": {
+      "days_compared": 1216,
+      "equal_to_pre_guard_prefix": true
+    }
+  }
+}

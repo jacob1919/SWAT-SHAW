@@ -1,6 +1,6 @@
 {
   "scope": "Isolated HRU checks; other HRUs use original SWAT+. Not the full basin comparison.",
-  "executable_sha256": "9ca7c39c84922811f55e07c693b68912a7e1079a9acc5c178a0f5975b3a05a87",
+  "executable_sha256": "572afdb01e01fc300ca48229e270d3c1da8bd8357a3c69d6dbe8137cac53e17c",
   "hrus": {
     "1": {
       "days": 1216,
@@ -15,7 +15,7 @@
       "retry_hours": 138,
       "jacobian_retry_hours": 1,
       "maximum_hour_parts": 8,
-      "seconds": 60.40600000001723,
+      "seconds": 60.35899999999674,
       "daily_csv_sha256": "d79500d8fbe874c096fc02ef823ec36a9c7c0a96ae5240f361e46350fb31c0fc",
       "hourly_check": {
         "hours": 29184,
@@ -44,13 +44,35 @@
       "retry_hours": 53,
       "jacobian_retry_hours": 51,
       "maximum_hour_parts": 2,
-      "seconds": 20.59399999998277,
+      "seconds": 19.90600000001723,
       "daily_csv_sha256": "31025c72bb8fbcdbf6697906bb579d3a3c1df73b1bbe20cd8463d36867bcb4bc",
       "hourly_check": {
         "hours": 29184,
         "max_abs_root_uptake_minus_transpiration_mm": 0.0,
         "max_abs_water_residual_mm": 0.003004074205,
         "csv_sha256": "98fb047a301477e30f49a97465e0c62706f06d24fa65e2a8ca3fce6a532eeb71"
+      }
+    },
+    "19": {
+      "days": 1216,
+      "maximum_daily_water_residual_mm": 0.005894374388,
+      "totals_mm": {
+        "et_mm": 2252.470415442561,
+        "runoff_mm": 243.18325234774,
+        "percolation_mm": 1207.204259385899,
+        "lateral_mm": 0.00024082480154999998,
+        "residual_mm": 0.3527782100703387
+      },
+      "retry_hours": 139,
+      "jacobian_retry_hours": 2,
+      "maximum_hour_parts": 8,
+      "seconds": 58.062999999994645,
+      "daily_csv_sha256": "1d736869ec67945a403fcc90532be52e84719e4d35fd07a630baab178c1d6930",
+      "hourly_check": {
+        "hours": 29184,
+        "max_abs_root_uptake_minus_transpiration_mm": 0.0,
+        "max_abs_water_residual_mm": 0.002669743835,
+        "csv_sha256": "07636708998050092b9009d358e23c9978bd8673f22aed5d98e314baddc7c997"
       }
     },
     "98": {
@@ -66,7 +88,7 @@
       "retry_hours": 100,
       "jacobian_retry_hours": 5,
       "maximum_hour_parts": 8,
-      "seconds": 46.937999999994645,
+      "seconds": 45.219000000011874,
       "daily_csv_sha256": "a134c54e7dc1e03bbf10b0cd5c0fbb67ad2cd1e07c31b24c822a8ec4423aff8b",
       "hourly_check": {
         "hours": 29184,
@@ -76,7 +98,7 @@
       },
       "limited_strategy_sensitivity": {
         "baseline_csv_sha256": "9870428e3c51154ad123d09d1b318ac3de70cb3415e6b26a0077709ad8bd901a",
-        "scope": "Same HRU, forcing and selected tolerances; before versus after optional conductance-Jacobian retry and root active-set correction. Not grid/time convergence or field skill.",
+        "scope": "Same HRU, forcing and selected tolerances; before versus after conductance-Jacobian retry, root active-set correction and minimum-step safeguards. Not grid/time convergence or field skill.",
         "totals": {
           "et_mm": {
             "before_conductance_retry_and_root_fix": 2228.433187769425,

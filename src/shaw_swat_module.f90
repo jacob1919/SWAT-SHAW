@@ -25,6 +25,7 @@ module shaw_swat_module
   logical, allocatable, save :: enabled(:)
   logical, save :: configured=.false., requested=.false.
   integer, save :: diag=0,hour_diag=0
+  integer, save :: capture_year=0,capture_day=0,capture_hour=0
 contains
   logical function shaw_active(j) result(active)
     integer,intent(in)::j
@@ -64,6 +65,12 @@ contains
           'percolation_mm,lateral_mm,storage_start_mm,storage_end_mm,residual_mm,swe_mm,ice_mm,tsoil_C,'// &
           'retry_hours,max_hour_parts,canopy_air_exchange_mm,jacobian_retry_hours'
         if(selected_hru>0) then
+          call get_environment_variable('SWAT_SHAW_CAPTURE_HOUR',setting,status=stat)
+          if(stat==0.and.len_trim(setting)>0) then
+            read(setting,*,iostat=read_stat) capture_year,capture_day,capture_hour
+            if(read_stat/=0.or.capture_year<1.or.capture_day<1.or.capture_day>366.or. &
+              capture_hour<1.or.capture_hour>24) error stop 'Invalid SWAT_SHAW_CAPTURE_HOUR: use year jday hour'
+          endif
           open(newunit=hour_diag,file='shaw_hru_hourly.csv',status='replace')
           write(hour_diag,'(a)') 'year,jday,hru,hour,storage_start_mm,storage_end_mm,precip_mm,et_mm,'// &
             'runoff_mm,percolation_mm,lateral_mm,canopy_air_exchange_mm,residual_mm,transpiration_mm,'// &
@@ -207,6 +214,14 @@ contains
         if(hour_diag/=0) then
           hour_before=1000.*shaw_storage(c)
           hour_start=c
+          if(time%yrc==capture_year.and.time%day==capture_day.and.h==capture_hour) then
+            hour_start%year=time%yrc;hour_start%julian=time%day;hour_start%hour=h
+            hour_start%tmpday=temp;hour_start%humday=w%rhum;hour_start%winday=w%windsp
+            hour_start%sunhor=solar(h);hour_start%precip=precip
+            open(newunit=dump_unit,file='shaw_failed_column.bin',access='stream',form='unformatted',status='replace')
+            write(dump_unit) hour_start
+            close(dump_unit)
+          endif
         endif
         call shaw_advance_hour(c,time%yrc,time%day,h,temp,real(w%rhum,real64),real(w%windsp,real64),solar(h),precip)
         ! All bridge roots lie inside the stored soil domain; plant water

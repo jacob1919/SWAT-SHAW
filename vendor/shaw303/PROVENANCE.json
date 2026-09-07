@@ -1745,5 +1745,35 @@
     "option": "options_canopy_jacobian",
     "method": "Solve nonnegative root supply with a consistent active set at fixed transpiration; retain native FRACTN and TOTROT scaling. Original one-pass root selection is retained when the option is zero."
   },
+  "optional_minimum_step_guards": {
+    "option": "options_canopy_jacobian",
+    "method": "At NDT>=MAXNDT reject the call before applying a correction that violates an existing native large-update threshold; complete-hour rollback/refinement is performed by the adapter. Original option zero is unchanged.",
+    "sites": [
+      {
+        "original_line": 767,
+        "condition": "ABS(DELTA(N)) .GT. 25."
+      },
+      {
+        "original_line": 794,
+        "condition": "ABS(DELTA(N)) .GT. 25."
+      },
+      {
+        "original_line": 853,
+        "condition": "ABS(DELTA(N)) .GT. 25."
+      },
+      {
+        "original_line": 877,
+        "condition": "ABS(DELTA(N)) .GT. 25."
+      },
+      {
+        "original_line": 1082,
+        "condition": "ABS(DELTA(N)) .GT. 1.0"
+      },
+      {
+        "original_line": 1134,
+        "condition": "ABS(DELTA(N)/CHKMAT).GT.100."
+      }
+    ]
+  },
   "contract": "64-bit default REAL, 32-bit INTEGER/LOGICAL; packed COMMON; serial load/call/save; no solute or CO2 simulation"
 }

@@ -170,5 +170,12 @@
       "sha256_without_banner": "cac3a43ee35ab9914113d5f3ed7010efc6ea02c2cf94c01c92ba29e3b1da6879"
     }
   },
-  "historical_golden": "not modified; also differs from pinned official executable"
+  "historical_golden": "not modified; also differs from pinned official executable",
+  "coupling_off_run": {
+    "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\build\\coupled\\swatplus-61.0.2.11-86-gbb179ee-ifx-win_amd64-Rel.exe",
+    "sha256": "572afdb01e01fc300ca48229e270d3c1da8bd8357a3c69d6dbe8137cac53e17c",
+    "exit_code": 0,
+    "seconds": 1.5469999999913853,
+    "completed_utc": "2026-09-07T13:48:53.118482+00:00"
+  }
 }

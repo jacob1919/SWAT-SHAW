@@ -54,6 +54,18 @@ Every accepted bridge hour additionally checks `abs(root uptake - transpiration)
 
 `canada/canopy_solver_checks.json` records executable and output hashes, cumulative fluxes, hourly invariants and the earlier failing day. HRU 98 changes relative to the pre-conductance/pre-root-fix checkpoint are approximately +0.0151% ET, -0.0105% runoff and +0.0144% percolation. These isolated checks do not substitute for a completed basin comparison or formal convergence study.
 
+## Safe rejection at the native minimum timestep
+
+The root-corrected basin run subsequently stopped at HRU 19, 2022 day 196, hour 16. An isolated replay reproduced a floating invalid operation in `CONDUC`, called by `QVSOIL/WBSOIL`. Diagnostic output showed an intermediate surface-node temperature of `7600.08117` °C, liquid fraction 0.222637 and no ice. This was an unconverged Newton candidate, not an accepted model temperature. Extrapolating the saturation-vapor polynomial at that candidate produced negative transport coefficients, whose geometric mean caused the invalid square root.
+
+Six existing `GOSHAW` large-update guards are conditional on `NDT < MAXNDT`: four energy-row corrections with magnitude above 25, an ice correction above 1, and a relative matric-potential correction above 100. Thus the same unsafe updates are allowed when the native minimum timestep is reached, before the later nonconvergence handling can return control to the adapter.
+
+Corrected options now reject the call before applying an update that violates one of these existing limits at `NDT >= MAXNDT`. The returned failure flag activates the existing complete-hour rollback and subdivision. Original option 0 remains unchanged. No temperature clipping, constitutive-law replacement or tolerance relaxation is introduced; hourly weather stays constant across retries and precipitation is divided conservatively.
+
+The captured hour now passes with two external parts: final surface-node temperature 21.380586 °C, liquid fraction 0.221701, zero ice, net ET 0.387877 mm and water residual `-0.0001163995 mm`. HRU 19 completes all 1,216 days with maximum daily residual 0.005894 mm. Its first 926 daily records remain exactly equal to the pre-guard trajectory; complete HRUs 1, 6 and 98 are also unchanged. Capture, executable hashes and replay results are in `canada/minimum_step_guard_check.json`. The binary state itself remains local and requires the matching compiler/layout.
+
+For isolated diagnosis, set `SWAT_SHAW_HRU` and optionally `SWAT_SHAW_CAPTURE_HOUR` to a space-separated year, Julian day and hour. The bridge writes the corresponding starting state and new hourly forcing to `shaw_failed_column.bin` before entering the kernel; `replay_shaw_column` can then reproduce that hour independently of SWAT+ routing.
+
 ## Atmospheric snowfall diagnostic
 
 Snowfall reporting now applies native `WTBULB`, pressure and snow-classification settings to atmospheric precipitation before canopy interception. A dry, above-freezing air temperature can therefore still produce diagnosed snow under the original wet-bulb rule. Tests cover this case, warm saturated rain and cold-air snow. The correction changes phase reporting, not SHAW's precipitation physics.
