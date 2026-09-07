@@ -38,7 +38,7 @@ def main():
         stamp=old['started_utc'].replace(':','').replace('+','_')
         history=directory/'history'/stamp
         history.mkdir(parents=True,exist_ok=True)
-        for name in ('run.json','console.log'):
+        for name in ('run.json','console.log','shaw_hru_daily.csv','shaw_failed_column.bin'):
             if (directory/name).exists():shutil.copy2(directory/name,history/name)
     metadata={'mode':args.mode,'executable':str(exe),'sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),
               'started_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'input_files':len(manifest)}

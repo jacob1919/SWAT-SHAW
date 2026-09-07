@@ -24,7 +24,7 @@ module shaw_swat_module
   type(column_hru), allocatable, save :: columns(:)
   logical, allocatable, save :: enabled(:)
   logical, save :: configured=.false., requested=.false.
-  integer, save :: diag=0
+  integer, save :: diag=0,hour_diag=0
 contains
   logical function shaw_active(j) result(active)
     integer,intent(in)::j
@@ -62,7 +62,13 @@ contains
         open(newunit=diag,file='shaw_hru_daily.csv',status='replace')
         write(diag,'(a)') 'year,jday,hru,precip_mm,external_soil_mm,surface_input_mm,et_mm,runoff_mm,'// &
           'percolation_mm,lateral_mm,storage_start_mm,storage_end_mm,residual_mm,swe_mm,ice_mm,tsoil_C,'// &
-          'retry_hours,max_hour_parts,canopy_air_exchange_mm'
+          'retry_hours,max_hour_parts,canopy_air_exchange_mm,jacobian_retry_hours'
+        if(selected_hru>0) then
+          open(newunit=hour_diag,file='shaw_hru_hourly.csv',status='replace')
+          write(hour_diag,'(a)') 'year,jday,hru,hour,storage_start_mm,storage_end_mm,precip_mm,et_mm,'// &
+            'runoff_mm,percolation_mm,lateral_mm,canopy_air_exchange_mm,residual_mm,transpiration_mm,'// &
+            'root_uptake_mm,bottom_root_uptake_mm,hour_parts,jacobian_retry'
+        endif
       endif
     endif
     active=.false.
@@ -139,7 +145,7 @@ contains
       call shaw_initialize(s%c,n,z(1:n),temp(1:n),water(1:n),real(wgn(ig)%lat,real64), &
         real(hru(j)%topo%elev,real64))
       call shaw_set_soil_parameters(s%c,rho,ks,kl,sand,silt,clay,rock,om,ae,sat,exponent)
-      call shaw_set_solver_tolerance(s%c,1.e-4,1.e-4)
+      call shaw_set_solver_tolerance(s%c,1.e-4,1.e-3)
       call shaw_correct_canopy_jacobian(s%c,.true.)
       s%c%soitmp=wgn_pms(ig)%tmp_an
       s%c%slope=atan(max(0.,hru(j)%topo%slope))
@@ -158,10 +164,11 @@ contains
 
   subroutine shaw_swat_day(j)
     integer,intent(in)::j
-    integer::i,k,h,n,nl,retry_hours,max_parts
+    integer::i,k,h,n,nl,retry_hours,max_parts,dump_unit
     real::delta(99),external,overflow,solar(24),decl,lat,angle,temp,precip,surface_input,lai,root,height,mass
     real::flux(320),water,ice,netet,runoff,perc,lateral,frac
-    real(real64)::before,after,residual
+    real(real64)::before,after,residual,hour_before,hour_after,hour_residual
+    type(shaw_column)::hour_start
     if(.not.shaw_active(j)) return
     if(.not.columns(j)%initialized) call initialize_hru(j)
     associate(s=>columns(j),c=>columns(j)%c)
@@ -197,9 +204,34 @@ contains
       flux=0.;snofall=0.;retry_hours=0;max_parts=1
       do h=1,24
         temp=w%tave+(w%tmax-w%tmin)/2.*sin((real(h)-9.)*acos(-1.)/12.)
-        if(temp<=0.) snofall=snofall+max(0.,w%precip)/24.
+        if(hour_diag/=0) then
+          hour_before=1000.*shaw_storage(c)
+          hour_start=c
+        endif
         call shaw_advance_hour(c,time%yrc,time%day,h,temp,real(w%rhum,real64),real(w%windsp,real64),solar(h),precip)
-        if(c%flux(319)>1.) retry_hours=retry_hours+1
+        ! All bridge roots lie inside the stored soil domain; plant water
+        ! capacitance is absent, so root supply must equal transpiration.
+        if(abs(sum(c%flux(219:218+n-1))-1000.*c%flux(3))>1.e-6) &
+          error stop 'SHAW root uptake does not match transpiration within 1e-6 mm/hour'
+        if(hour_diag/=0) then
+          hour_after=1000.*shaw_storage(c)
+          hour_residual=hour_after-hour_before+1000.*(-precip-c%flux(318)-c%flux(2)+c%flux(1)+ &
+            c%flux(20+n-1)+sum(c%flux(120:118+n)))
+          write(hour_diag,'(i0,3(",",i0),14(",",es18.9))') time%yrc,time%day,j,h,hour_before,hour_after, &
+            precip*1000.,-c%flux(2)*1000.,c%flux(1)*1000.,c%flux(20+n-1)*1000., &
+            sum(c%flux(120:118+n))*1000.,c%flux(318)*1000.,hour_residual,c%flux(3)*1000., &
+            sum(c%flux(219:218+n-1)),c%flux(218+n),c%flux(319),c%flux(320)
+          if(abs(hour_residual)>.004) then
+            hour_start%year=c%year;hour_start%julian=c%julian;hour_start%hour=c%hour
+            hour_start%tmpday=c%tmpday;hour_start%humday=c%humday;hour_start%winday=c%winday
+            hour_start%sunhor=c%sunhor;hour_start%precip=c%precip
+            open(newunit=dump_unit,file='shaw_budget_column.bin',access='stream',form='unformatted',status='replace')
+            write(dump_unit) hour_start
+            close(dump_unit)
+          endif
+        endif
+        snofall=snofall+1000.*shaw_snowfall_input(c)
+        if(c%flux(319)>1..or.c%flux(320)>0.) retry_hours=retry_hours+1
         max_parts=max(max_parts,nint(c%flux(319)))
         ! Runon/irrigation remain liquid and bypass atmospheric rain/snow partition.
         ! Add at the interval end; retained pond water enters the next SHAW step.
@@ -243,9 +275,9 @@ contains
       ! Component-specific esoil/ecanopy are not physically separated in this first bridge.
       es_day=netet-ep_day;canev=0.
       ep_max=max(0.,pet_day)*min(1.,lai/3.)
-      write(diag,'(i0,2(",",i0),16(",",es18.9))') time%yrc,time%day,j,w%precip,external, &
+      write(diag,'(i0,2(",",i0),17(",",es18.9))') time%yrc,time%day,j,w%precip,external, &
         surface_input,netet,runoff,perc,lateral,before,after,residual,hru(j)%sno_mm,ice,soil(j)%phys(1)%tmp, &
-        real(retry_hours),real(max_parts),flux(318)*1000.
+        real(retry_hours),real(max_parts),flux(318)*1000.,flux(320)
       if(abs(residual)>.1_real64) then
         flush(diag)
         write(*,*) 'SHAW water residual > 0.1 mm: year/day/HRU/residual',time%yrc,time%day,j,residual

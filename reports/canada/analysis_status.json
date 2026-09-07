@@ -1,0 +1,75 @@
+{
+  "status": "incomplete",
+  "errors": [
+    "shaw: incomplete or unsuccessful run (exit_code=None)"
+  ],
+  "runs": {
+    "official": {
+      "mode": "official",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\swatplus_addFT\\validation_baselines\\swatplus_61c940f_clean\\build_clean\\swatplus-61.0.2.11-83-g61c940f-ifx-win_amd64-Rel.exe",
+      "sha256": "f290f5334dc0889d951859754a0a7f4df9c15193016424207ee48890ff4bdb1a",
+      "started_utc": "2026-09-06T03:13:41.860770+00:00",
+      "input_files": 79,
+      "exit_code": 0,
+      "seconds": 3.7969999999913853,
+      "completed_utc": "2026-09-06T03:13:45.664023+00:00"
+    },
+    "existing_ft": {
+      "mode": "existing_ft",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\swatplus_addFT\\build\\debug\\swatplus-61.0.2.11-83-g61c940f-ifx-win_amd64-Dbg.exe",
+      "sha256": "9d0c219b38af71e2e8c209a000cdd6c405f12861d8d7541a936d45e13b1c2afa",
+      "started_utc": "2026-09-06T03:13:42.283022+00:00",
+      "input_files": 79,
+      "exit_code": 0,
+      "seconds": 28.421999999991385,
+      "completed_utc": "2026-09-06T03:14:10.703628+00:00"
+    },
+    "shaw": {
+      "mode": "shaw",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\build\\coupled\\swatplus-61.0.2.11-86-gbb179ee-ifx-win_amd64-Rel.exe",
+      "sha256": "9ca7c39c84922811f55e07c693b68912a7e1079a9acc5c178a0f5975b3a05a87",
+      "started_utc": "2026-09-07T08:41:12.775046+00:00",
+      "input_files": 79,
+      "source_sha256": {
+        "src/shaw/CMakeLists.txt": "5539974c6087f57e2eb3bb52b7e656b42af0d49b362c5287846640ab7f2ffe9c",
+        "src/shaw/shaw_canopy_jacobian.f90": "6250fd515c309d9cddb007fd108895876eb0e9c7fa46f59f23672d6e3c6e985b",
+        "src/shaw/shaw_column_api.f90": "1ddea4a964d31046b4793d2223c709e184b9b0e3c29f6d9918ee80709cdf4473",
+        "src/shaw/shaw_column_types.f90": "33463ad336259c02acd126a491f2d562d38f960291d650970a3794cbe6b4a324",
+        "src/shaw/shaw_common_access.f90": "0bddd90dffe8c371c188da82b90d0cefee957d200eed326dad53bfcf7d1746bf",
+        "src/shaw/shaw_legacy_state.f90": "40a41b3813dd18c1d75a06bac12c46a75d7542a2822b9a60483fe50db32045e7",
+        "src/shaw/shaw_root_partition.f90": "75ac1cfad8e3ac8396e4c601270920d772b5eb292f4b85b82a4a50d41884bbfc",
+        "src/shaw/shaw_water_heat.for": "a87cb532b136871e6d5d991f40f720bb26e12062e877ea0b992b7c798ae5f242",
+        "src/shaw_swat_module.f90": "07a4031e3d899fc9febaabfa0bd3b641947f07c4d6653fe95b76133b0b921ea1",
+        "src/hru_control.f90": "dc0264a985046c366499241211791f2f608d4ad067e53954a00e6548bb58066a",
+        "src/surface.f90": "423d862ff55b2c73a88ff62aad79b3ce2e57b3ebf6be76777a9babc8276fc4e4",
+        "src/pl_waterup.f90": "dee6a101129a0ce677ba8525df1b451cfc003ccd51e103482009a2eae5fc6ea3"
+      },
+      "source_base_commit": "bb179eed14983cd997c818b5ebd304ebbd05e34f"
+    },
+    "coupling_off": {
+      "mode": "coupling_off",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\build\\coupled\\swatplus-61.0.2.11-86-gbb179ee-ifx-win_amd64-Rel.exe",
+      "sha256": "9ca7c39c84922811f55e07c693b68912a7e1079a9acc5c178a0f5975b3a05a87",
+      "started_utc": "2026-09-07T08:38:53.946247+00:00",
+      "input_files": 79,
+      "source_sha256": {
+        "src/shaw/CMakeLists.txt": "5539974c6087f57e2eb3bb52b7e656b42af0d49b362c5287846640ab7f2ffe9c",
+        "src/shaw/shaw_canopy_jacobian.f90": "6250fd515c309d9cddb007fd108895876eb0e9c7fa46f59f23672d6e3c6e985b",
+        "src/shaw/shaw_column_api.f90": "1ddea4a964d31046b4793d2223c709e184b9b0e3c29f6d9918ee80709cdf4473",
+        "src/shaw/shaw_column_types.f90": "33463ad336259c02acd126a491f2d562d38f960291d650970a3794cbe6b4a324",
+        "src/shaw/shaw_common_access.f90": "0bddd90dffe8c371c188da82b90d0cefee957d200eed326dad53bfcf7d1746bf",
+        "src/shaw/shaw_legacy_state.f90": "40a41b3813dd18c1d75a06bac12c46a75d7542a2822b9a60483fe50db32045e7",
+        "src/shaw/shaw_root_partition.f90": "75ac1cfad8e3ac8396e4c601270920d772b5eb292f4b85b82a4a50d41884bbfc",
+        "src/shaw/shaw_water_heat.for": "a87cb532b136871e6d5d991f40f720bb26e12062e877ea0b992b7c798ae5f242",
+        "src/shaw_swat_module.f90": "07a4031e3d899fc9febaabfa0bd3b641947f07c4d6653fe95b76133b0b921ea1",
+        "src/hru_control.f90": "dc0264a985046c366499241211791f2f608d4ad067e53954a00e6548bb58066a",
+        "src/surface.f90": "423d862ff55b2c73a88ff62aad79b3ce2e57b3ebf6be76777a9babc8276fc4e4",
+        "src/pl_waterup.f90": "dee6a101129a0ce677ba8525df1b451cfc003ccd51e103482009a2eae5fc6ea3"
+      },
+      "source_base_commit": "bb179eed14983cd997c818b5ebd304ebbd05e34f",
+      "exit_code": 0,
+      "seconds": 7.01500000001397,
+      "completed_utc": "2026-09-07T08:39:01.008246+00:00"
+    }
+  }
+}

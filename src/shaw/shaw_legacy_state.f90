@@ -2,7 +2,7 @@
 module shaw_legacy_state
   use iso_fortran_env, only: int32
   implicit none
-  integer, parameter :: shaw_state_words = 20540
+  integer, parameter :: shaw_state_words = 20700
   type :: shaw_snapshot
     integer(int32) :: words(shaw_state_words) = 0
   end type
@@ -63,6 +63,9 @@ contains
     integer(int32) :: raw_radres(40)
     common /SHP_RADRES/ raw_radres
     save /SHP_RADRES/
+    integer(int32) :: raw_canlwr(160)
+    common /SHP_CANLWR/ raw_canlwr
+    save /SHP_CANLWR/
     integer(int32) :: raw_sv_atstab(12)
     common /SHP_SV_ATSTAB/ raw_sv_atstab
     save /SHP_SV_ATSTAB/
@@ -126,21 +129,22 @@ contains
     raw_sv_canlayzc = state%words(15992:16012)
     raw_radcan = state%words(16013:16444)
     raw_radres = state%words(16445:16484)
-    raw_sv_atstab = state%words(16485:16496)
-    raw_sv_leaft = state%words(16497:17000)
-    raw_sv_cantk = state%words(17001:17002)
-    raw_sv_ebsnow = state%words(17003:18202)
-    raw_residu = state%words(18203:18242)
-    raw_sv_ebres = state%words(18243:18262)
-    raw_spheat = state%words(18263:18460)
-    raw_sv_ebsoil = state%words(18461:19252)
-    raw_sv_soiltk = state%words(19253:19283)
-    raw_sv_wbsoil = state%words(19284:19679)
-    raw_sv_sumdt = state%words(19680:19695)
-    raw_sv_snomlt = state%words(19696:19697)
-    raw_sv_rainsl = state%words(19698:19897)
-    raw_result = state%words(19898:20537)
-    raw_options = state%words(20538:20540)
+    raw_canlwr = state%words(16485:16644)
+    raw_sv_atstab = state%words(16645:16656)
+    raw_sv_leaft = state%words(16657:17160)
+    raw_sv_cantk = state%words(17161:17162)
+    raw_sv_ebsnow = state%words(17163:18362)
+    raw_residu = state%words(18363:18402)
+    raw_sv_ebres = state%words(18403:18422)
+    raw_spheat = state%words(18423:18620)
+    raw_sv_ebsoil = state%words(18621:19412)
+    raw_sv_soiltk = state%words(19413:19443)
+    raw_sv_wbsoil = state%words(19444:19839)
+    raw_sv_sumdt = state%words(19840:19855)
+    raw_sv_snomlt = state%words(19856:19857)
+    raw_sv_rainsl = state%words(19858:20057)
+    raw_result = state%words(20058:20697)
+    raw_options = state%words(20698:20700)
   end subroutine
   subroutine shaw_save_state(state)
     type(shaw_snapshot), intent(out) :: state
@@ -198,6 +202,9 @@ contains
     integer(int32) :: raw_radres(40)
     common /SHP_RADRES/ raw_radres
     save /SHP_RADRES/
+    integer(int32) :: raw_canlwr(160)
+    common /SHP_CANLWR/ raw_canlwr
+    save /SHP_CANLWR/
     integer(int32) :: raw_sv_atstab(12)
     common /SHP_SV_ATSTAB/ raw_sv_atstab
     save /SHP_SV_ATSTAB/
@@ -261,20 +268,21 @@ contains
     state%words(15992:16012) = raw_sv_canlayzc
     state%words(16013:16444) = raw_radcan
     state%words(16445:16484) = raw_radres
-    state%words(16485:16496) = raw_sv_atstab
-    state%words(16497:17000) = raw_sv_leaft
-    state%words(17001:17002) = raw_sv_cantk
-    state%words(17003:18202) = raw_sv_ebsnow
-    state%words(18203:18242) = raw_residu
-    state%words(18243:18262) = raw_sv_ebres
-    state%words(18263:18460) = raw_spheat
-    state%words(18461:19252) = raw_sv_ebsoil
-    state%words(19253:19283) = raw_sv_soiltk
-    state%words(19284:19679) = raw_sv_wbsoil
-    state%words(19680:19695) = raw_sv_sumdt
-    state%words(19696:19697) = raw_sv_snomlt
-    state%words(19698:19897) = raw_sv_rainsl
-    state%words(19898:20537) = raw_result
-    state%words(20538:20540) = raw_options
+    state%words(16485:16644) = raw_canlwr
+    state%words(16645:16656) = raw_sv_atstab
+    state%words(16657:17160) = raw_sv_leaft
+    state%words(17161:17162) = raw_sv_cantk
+    state%words(17163:18362) = raw_sv_ebsnow
+    state%words(18363:18402) = raw_residu
+    state%words(18403:18422) = raw_sv_ebres
+    state%words(18423:18620) = raw_spheat
+    state%words(18621:19412) = raw_sv_ebsoil
+    state%words(19413:19443) = raw_sv_soiltk
+    state%words(19444:19839) = raw_sv_wbsoil
+    state%words(19840:19855) = raw_sv_sumdt
+    state%words(19856:19857) = raw_sv_snomlt
+    state%words(19858:20057) = raw_sv_rainsl
+    state%words(20058:20697) = raw_result
+    state%words(20698:20700) = raw_options
   end subroutine
 end module shaw_legacy_state

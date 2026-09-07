@@ -6,6 +6,8 @@ import os
 import shutil
 import subprocess
 import time
+import hashlib
+import datetime as dt
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -23,6 +25,12 @@ def main():
     start=time.monotonic()
     with (target/'console.log').open('wb') as log:
         result=subprocess.run([str(exe)],cwd=target,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT)
-    print(json.dumps({'hru':args.hru,'directory':str(target),'exit_code':result.returncode,'seconds':time.monotonic()-start}))
+    metadata={'hru':args.hru,'directory':str(target),'exit_code':result.returncode,
+              'seconds':time.monotonic()-start,'executable_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),
+              'completed_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
+              'scope':'Only this HRU uses SHAW; diagnostic run, not the basin comparison.'}
+    (target/'run.json').write_text(json.dumps(metadata,indent=2)+'\n')
+    print(json.dumps(metadata))
+    raise SystemExit(result.returncode)
 
 if __name__=='__main__':main()

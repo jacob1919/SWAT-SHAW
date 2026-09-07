@@ -11,9 +11,23 @@ module shaw_column_api
   public :: shaw_add_water
   public :: shaw_set_solver_tolerance
   public :: shaw_correct_canopy_jacobian
+  public :: shaw_snowfall_input
   type(shaw_snapshot), save :: pristine
   logical, save :: template_ready = .false.
 contains
+  real function shaw_snowfall_input(c) result(snow)
+    type(shaw_column),intent(in) :: c
+    real :: threshold_temperature
+    ! Atmospheric input classified by the same threshold as native PRECP.
+    ! Report before canopy interception; exclude remobilized old snow/pond.
+    threshold_temperature=c%tmpday
+    if(c%isnotmp/=1) then
+      call shaw_load_state(c%memory)
+      call SHP_WTBULB(threshold_temperature,c%tmpday,c%humday)
+    endif
+    snow=0.
+    if(threshold_temperature<=c%snotmp.or.c%snoden>0.) snow=c%precip
+  end function
   subroutine shaw_correct_canopy_jacobian(c, enabled)
     type(shaw_column),intent(inout)::c
     logical,intent(in)::enabled
@@ -161,7 +175,7 @@ contains
     real, intent(in) :: temperature,humidity,wind,solar,precip
     real :: decl, cos_halfday, integrated(320)
     type(shaw_column) :: start
-    integer :: parts,part,dump_unit
+    integer :: parts,part,dump_unit,strategy,strategies,requested_option
     logical :: converged
     c%year=year
     c%julian=day
@@ -177,20 +191,34 @@ contains
     cos_halfday=-tan(c%alatud)*tan(decl)
     c%hafday=acos(max(-1.,min(1.,cos_halfday)))
     start=c
+    call shaw_load_state(start%memory)
+    requested_option=options_canopy_jacobian
+    strategies=0
+    if(requested_option==1) strategies=1
     parts=1
     do
-      c=start
-      c%dtime=3600./real(parts)
-      c%precip=start%precip/real(parts)
-      integrated=0.
-      converged=.true.
-      do part=1,parts
-        call shaw_call(c)
-        if(c%flux(320)<0.) then
-          converged=.false.
-          exit
+      do strategy=0,strategies
+        ! Both Jacobians solve the same residuals with the same stopping tests.
+        ! Each attempt starts from the complete hour snapshot, including SAVE.
+        c=start
+        if(strategy==1) then
+          call shaw_load_state(c%memory)
+          options_canopy_jacobian=2
+          call shaw_save_state(c%memory)
         endif
-        integrated=integrated+c%flux
+        c%dtime=3600./real(parts)
+        c%precip=start%precip/real(parts)
+        integrated=0.
+        converged=.true.
+        do part=1,parts
+          call shaw_call(c)
+          if(c%flux(320)<0.) then
+            converged=.false.
+            exit
+          endif
+          integrated=integrated+c%flux
+        enddo
+        if(converged) exit
       enddo
       if(converged) exit
       parts=parts*2
@@ -205,6 +233,10 @@ contains
     enddo
     c%flux=integrated
     c%flux(319)=real(parts)
+    c%flux(320)=real(strategy) ! Accepted hour used the additional conductance Jacobian.
+    call shaw_load_state(c%memory)
+    options_canopy_jacobian=requested_option
+    call shaw_save_state(c%memory)
     c%dtime=3600.
     c%precip=start%precip
     if (.not. all(ieee_is_finite(c%tsdt(1:c%ns))) .or. &

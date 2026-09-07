@@ -125,7 +125,9 @@ def main():
                         decls[match[1]] = (m[1].upper(), match[2] or '')
         unit['decls'] = decls
         for st in unit['statements']:
-            match = re.match(r'\s*COMMON\s*/(\w+)/\s*(.*)', st['text'], re.I)
+            match = re.match(r'\s*COMMON\s*/\s*(\w+)\s*/\s*(.*)', st['text'], re.I)
+            if re.match(r'\s*COMMON\b', st['text'], re.I):
+                assert match, ('Unrecognized COMMON declaration', name, st['text'])
             if match:
                 block, fields = match[1].upper(), split_list(match[2].upper())
                 entries = []
@@ -187,6 +189,8 @@ def main():
     source_map, jacobian_transforms, canopy_exchange_sites = [], [], []
     canopy_exchange_initializations = 0
     leaf_elimination_corrections = 0
+    conductance_corrections = 0
+    root_partition_corrections = 0
     for name, unit in selected.items():
         source_map.append({'routine':name,'original_line':unit['statements'][0]['start']+1})
         body.append('C     USDA-ARS SHAW 3.0.3: '+name+'\n')
@@ -220,7 +224,7 @@ def main():
                 body.append(emit('RETURN'))
             if st['start'] in replacements:
                 body.append(replacements[st['start']]); continue
-            text = re.sub(r'\bCOMMON\s*/(\w+)/',lambda m:'COMMON /SHP_'+m[1].upper()+'/',text,flags=re.I)
+            text = re.sub(r'\bCOMMON\s*/\s*(\w+)\s*/',lambda m:'COMMON /SHP_'+m[1].upper()+'/',text,flags=re.I)
             # Rename identifiers outside string literals.
             chunks = re.split(r"('(?:[^']|'')*'|\"(?:[^\"]|\"\")*\")",text)
             for k in range(0,len(chunks),2):
@@ -257,6 +261,43 @@ def main():
                     emit('SHP_RESULT_VALUES(219:218+NS) = ROOTXT(1:NS)'),
                     emit('SHP_RESULT_VALUES(318) = SHP_CANOPY_EXCHANGE')]
             compact = re.sub(r'\s+', '', text).upper()
+            if name == 'LEAFT' and compact == 'INTEGERINIT(8),ITYPE(8)':
+                body.append(emit('REAL SHP_ROOTFLUX(99)'))
+            if name == 'LEAFT' and compact == 'IF(SRROOT*SUMET.NE.0.0)THEN':
+                body.append('C     Optional consistent nonnegative root supply at fixed transpiration.\n')
+                body.append(emit('IF (SHP_CANOPY_JACOBIAN.NE.0) THEN'))
+                body.append(emit('CALL SHP_ROOT_PARTITION(NS,AVGMAT,RROOT(J,1:99),ROOTDN(J,1:99),SUMET,PXYLEM(J),SHP_ROOTFLUX)'))
+                body.append(emit('DO I=1,NS'))
+                body.append(emit('XTRACT(I)=XTRACT(I)+FRACTN*TOTROT(J)*SHP_ROOTFLUX(I)'))
+                body.append(emit('END DO'))
+                body.append(emit('ELSE'))
+                root_partition_corrections += 1
+            if name == 'LEAFT' and compact == 'TRNSP(NPLANT+1)=TRNSP(NPLANT+1)+FRACTN*SUMET':
+                body.append(emit('END IF'))
+            if name == 'EBCAN' and compact == 'INTEGERITYPE(8)':
+                body.append(emit('REAL SHP_DTOP(10),SHP_DBOT(10),SHP_DIFF,SHP_RECEIVE'))
+                body.append(emit('INTEGER SHP_ROW'))
+            if name == 'EBCAN' and compact.startswith('HNC='):
+                # Product-rule terms for temperature-dependent turbulent exchange.
+                # The receiving soil row includes both sensible and latent heat.
+                # Snow/residue boundary variables have different meanings and
+                # retain the original Jacobian in this first correction.
+                body.append('C     Optional canopy-soil turbulent-conductance Jacobian terms.\n')
+                for line in [
+                    'IF (SHP_CANOPY_JACOBIAN.GE.2 .AND. NSP.EQ.0 .AND. NR.EQ.0) THEN',
+                    'CALL SHP_CANTK_DERIV(NC,CON,TCDT,ZC,SHP_DTOP,SHP_DBOT)',
+                    'DO I=1,NC', 'SHP_ROW=N-NC+I-1',
+                    'SHP_DIFF=TCDT(I)-TCDT(I+1)',
+                    'IF(I.EQ.NC) SHP_DIFF=TCDT(I)-WT*TC(I+1)-WDT*TCDT(I+1)',
+                    'SHP_RECEIVE=SHP_DIFF',
+                    'IF(I.EQ.NC) SHP_RECEIVE=SHP_RECEIVE+LV/(RHOA*CA)*(VAPCDT(I)-WT*VAPC(I+1)-WDT*VAPCDT(I+1))',
+                    'B1(SHP_ROW)=B1(SHP_ROW)-SHP_DTOP(I)*SHP_DIFF',
+                    'C1(SHP_ROW)=C1(SHP_ROW)-SHP_DBOT(I)*SHP_DIFF',
+                    'A1(SHP_ROW+1)=A1(SHP_ROW+1)+SHP_DTOP(I)*SHP_RECEIVE',
+                    'B1(SHP_ROW+1)=B1(SHP_ROW+1)+SHP_DBOT(I)*SHP_RECEIVE',
+                    'END DO', 'END IF']:
+                    body.append(emit(line))
+                conductance_corrections += 1
             if name == 'GOSHAW' and compact == 'ITER=0':
                 body.append(emit(text,st['label']))
                 body.append(emit('SHP_FORCED_REFINEMENT=0'))
@@ -316,6 +357,8 @@ def main():
     assert len(jacobian_transforms) == len(CANOPY_JACOBIAN_PATCHES), jacobian_transforms
     assert canopy_exchange_initializations == 1, canopy_exchange_initializations
     assert leaf_elimination_corrections == 1, leaf_elimination_corrections
+    assert conductance_corrections == 1, conductance_corrections
+    assert root_partition_corrections == 1, root_partition_corrections
     assert len(canopy_exchange_sites) == 5, canopy_exchange_sites
     body.append(canopy_air_water_source())
     if moved_data:
@@ -400,6 +443,12 @@ def main():
                   'corrected':'F1(I)=F1(I)-(DF1DT(I)/DF2DT(I))*F2(I)'},
               'optional_iteration_extension':{'option':'options_canopy_jacobian',
                   'max_iterations_without_forced_refinement':40,'convergence_criteria':'unchanged; native large-increment guards still force time refinement'},
+              'optional_canopy_conductance_jacobian':{'option':'options_canopy_jacobian',
+                  'enabled_value':2,'activation':'Rollback and try this Jacobian only after a corrected baseline hourly attempt fails; restore the requested option after acceptance.',
+                  'boundary_scope':'EBCAN when NSP=0 and NR=0; canopy over soil',
+                  'method':'Analytic CANTK derivatives at fixed wind; product-rule terms in donor sensible heat and receiving sensible-plus-latent heat residuals. Native Richardson limits and conductivity floor retained.'},
+              'optional_root_partition':{'option':'options_canopy_jacobian',
+                  'method':'Solve nonnegative root supply with a consistent active set at fixed transpiration; retain native FRACTN and TOTROT scaling. Original one-pass root selection is retained when the option is zero.'},
               'contract':'64-bit default REAL, 32-bit INTEGER/LOGICAL; packed COMMON; serial load/call/save; no solute or CO2 simulation'}
     (vendor/'PROVENANCE.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print(f'Extracted {len(selected)} units, {len(common)} COMMON/SAVE blocks, {cursor*4} bytes/context')

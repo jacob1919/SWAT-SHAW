@@ -2,7 +2,7 @@ program test_shaw_canopy
   use iso_fortran_env, only: real64
   use shaw_column_api
   implicit none
-  type(shaw_column) :: c
+  type(shaw_column) :: c,phase
   real :: z(21), temperature(21), water(21), density(21), k(21), zero(21)
   real :: sand(21), silt(21), clay(21), air_entry(21), saturation(21), exponent(21)
   real :: air, rain, solar, intercepted, old_pond
@@ -19,7 +19,7 @@ program test_shaw_canopy
   call shaw_initialize(c,21,z,temperature,water,45.25,106.)
   call shaw_set_soil_parameters(c,density,k,zero,sand,silt,clay,zero,zero,air_entry,saturation,exponent)
   call shaw_set_vegetation(c,0.,.8,.1,.6)
-  call shaw_set_solver_tolerance(c,1.e-4,1.e-4)
+  call shaw_set_solver_tolerance(c,1.e-4,1.e-3)
   call shaw_correct_canopy_jacobian(c,.true.)
   c%clouds=.5
   max_residual=0.; air_exchange=0.; max_swe=0.; max_ice=0.
@@ -87,5 +87,11 @@ program test_shaw_canopy
   if(max_swe<=0..or.max_ice<=1.e-8) error stop 'Snow and frozen soil were not covered'
   if(air_exchange<=1.e-8_real64) error stop 'Canopy geometry exchange was not exercised'
   if(max_residual>.002_real64) error stop 'Dynamic canopy hourly water residual exceeds 0.002 mm'
+  phase=c; phase%precip=.001; phase%tmpday=2.; phase%humday=.1
+  if(shaw_snowfall_input(phase)/=phase%precip) error stop 'Dry above-freezing air must use wet-bulb snow phase'
+  phase%humday=1.
+  if(shaw_snowfall_input(phase)/=0.) error stop 'Warm saturated air must classify liquid precipitation'
+  phase%tmpday=-2.
+  if(shaw_snowfall_input(phase)/=phase%precip) error stop 'Cold air must classify snowfall'
   print *, 'PASS: dynamic canopy, snow and freeze/thaw; max hourly water residual mm=',max_residual
 end program test_shaw_canopy

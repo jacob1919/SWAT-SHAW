@@ -123,12 +123,13 @@ def render_report(summary, annual, daily, kernel, ames, hashes):
             fmt(b['coupled_area_cumulative_signed_residual_mm'], 6),
             fmt(b['coupled_area_sum_absolute_daily_residual_mm'], 6), canopy])
         retry_rows.append([label, f"{b['hru_days']:,}", f"{b['retried_hru_hours']:,}",
-            fmt(b['retried_hru_hours_percent'], 4) + '%', f"{b['hru_days_requiring_retry']:,}", b['max_hour_parts']])
+            fmt(b['retried_hru_hours_percent'], 4) + '%', f"{b['hru_days_requiring_retry']:,}", b['max_hour_parts'],
+            f"{b['jacobian_retry_hours']:,}"])
     budget_table = table(['时段', '天数', '最大单 HRU 日残差绝对值（mm）',
                            '累计有符号残差（mm）', '逐日面平均残差绝对值之和（mm）',
                            '累计冠层空气水量交换（mm）'], budget_rows)
     retry_table = table(['时段', 'HRU·日', '发生重试的 HRU·小时', '小时占比', '发生重试的 HRU·日',
-                          '最大小时分段数'], retry_rows)
+                          '最大小时分段数','采用附加导数的 HRU·小时'], retry_rows)
     test_lines = []
     ref = kernel.get('official_reference')
     if ref:
@@ -141,6 +142,15 @@ def render_report(summary, annual, daily, kernel, ames, hashes):
             test_lines.append(f"{label}检查为 {result['hours']} 小时，最大逐小时水量残差 "
                               f"{fmt(result['max_abs_hourly_residual_mm'], 9)} mm，验收限值为 0.002 mm。")
     reg = summary['regression']
+    conductance = kernel.get('shaw_conductance_test')
+    if conductance:
+        test_lines.append(f"冠层交换系数温度导数与原始函数有限差分比较，最大缩放差 "
+                          f"{conductance['max_scaled_derivative_difference']:.6g}，"
+                          f"限值 {conductance['acceptance_limit']:.6g}。")
+    roots = kernel.get('shaw_root_test')
+    if roots and roots.get('status') == 'pass':
+        test_lines.append('根系供水检查覆盖干湿土层反例、节点排序、零需求及微小通量；'
+                          '每个接受小时另检查根系吸水与蒸腾差不超过 1e-6 mm。')
     test_lines.append(f"加拿大关闭耦合回归：{reg['files_identical_after_banner']} 个文件、"
                       f"{reg['data_rows']:,} 个数据行在构建标题行之后与固定官方版本完全一致。"
                       '本报告要求关闭耦合和启用耦合使用同一可执行文件 SHA256。')
@@ -191,6 +201,14 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 [科学绘图 PDF](process_comparison.pdf)
 
+## 冬春过程与季节统计
+
+下图放大各年 1—5 月的出口流量和积雪过程；2023 年仅到 4 月底，5 月留空。各列采用相同纵轴，便于比较幅度。季节累计与峰值见 [季节 CSV](seasonal_comparison.csv)：采用气象季节 DJF/MAM/JJA/SON，12 月归入下一冬季年份；2021 冬季缺少预热期的 2020 年 12 月，2023 春季缺少 5 月，均标为不完整季节。
+
+![冬春出口流量与积雪](winter_spring_comparison.png)
+
+[冬春绘图 PDF](winter_spring_comparison.pdf)
+
 ## 耦合域水量收支与数值重试
 
 逐 HRU 日账本采用 `储量变化 − 降水 − 外部土壤来水 − 地表来水 − 冠层空气水量交换 + 净蒸散 + 径流 + 底部渗漏 + 侧向流`。冠层空气水量交换是冠层几何变化导致的空气控制体水汽储量变化，独立记为有符号输入，不并入物理蒸发；冰和雪均换算为液水当量。
@@ -201,13 +219,13 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 {retry_table}
 
-重试计数是需要时间细分的 HRU 小时数，不是程序耗时。未收敛尝试先完整恢复状态再缩短步长，最多把一小时分成 64 段；未收敛结果不会自动接受或静默退回原始 SWAT+。
+重试计数包括时间细分或附加交换系数导数的 HRU 小时，不是程序耗时。未收敛尝试先完整恢复状态，在同一步长下尝试包含冠层交换系数温度导数的迭代矩阵；仍不收敛再缩短步长，最多把一小时分成 64 段。两种矩阵求解相同的物理方程，采用相同的收敛门槛。未收敛结果不会自动接受或静默退回原始 SWAT+。
 
 ## 已核验的数值性质
 
 {checks}
 
-耦合桥接启用了冠层储量项迭代系数修正，而官方参照试验采用保留原始算法的路径；两者不能混称为与官方算法逐位一致。状态隔离、冠层控制体交换及修正依据见 [数值审查记录](../NUMERICAL_AUDIT.md)。实现及试验入口：[SWAT 桥接](../../src/shaw_swat_module.f90)、[土柱接口](../../src/shaw/shaw_column_api.f90)、[列间状态试验](../../tests/test_shaw_columns.f90)、[动态冠层试验](../../tests/test_shaw_canopy.f90)、[官方参照试验](../../tests/test_shaw_reference.f90)、[内核检查记录](kernel_checks.json)、[Ames 比较记录](ames_pristine.json)。
+耦合桥接启用了冠层储量项迭代系数、叶片消元及根系非负供水修正，而官方参照试验采用保留原始算法的路径；两者不能混称为与官方算法逐位一致。根系修正通过重算有效供水土层避免吸水超过蒸腾，不以调整水量账本消除残差。降雪统计依据原始湿球温度规则记录截留前的大气降雪。状态隔离、冠层控制体交换及修正依据见 [数值审查记录](../NUMERICAL_AUDIT.md)。实现及试验入口：[SWAT 桥接](../../src/shaw_swat_module.f90)、[土柱接口](../../src/shaw/shaw_column_api.f90)、[列间状态试验](../../tests/test_shaw_columns.f90)、[动态冠层试验](../../tests/test_shaw_canopy.f90)、[根系试验](../../tests/test_shaw_roots.f90)、[交换系数导数试验](../../tests/test_shaw_conductance.f90)、[官方参照试验](../../tests/test_shaw_reference.f90)、[内核检查记录](kernel_checks.json)、[Ames 比较记录](ames_pristine.json)。
 
 ## 解释限制与后续验证
 
@@ -243,14 +261,17 @@ def main():
     with (directory / 'daily_comparison.csv').open(encoding='utf-8', newline='') as f:
         daily = list(csv.DictReader(f))
     validate(summary, status, annual, daily, ROOT / 'validation/canada')
-    for name in ('process_comparison.png', 'process_comparison.pdf'):
+    for name in ('process_comparison.png', 'process_comparison.pdf','seasonal_comparison.csv',
+                 'winter_spring_comparison.png','winter_spring_comparison.pdf'):
         if not (directory / name).is_file() or (directory / name).stat().st_size == 0:
             raise ValueError(f'Report withheld: missing comparison plot {name}')
     kernel_path = directory / 'kernel_checks.json'
     ames_path = directory / 'ames_pristine.json'
     kernel = load_json(kernel_path) if kernel_path.exists() else {}
+    if kernel and kernel.get('coupled_executable_sha256') != summary['runs']['shaw']['sha256']:
+        raise ValueError('Report withheld: kernel checks refer to a different coupled executable')
     ames = load_json(ames_path) if ames_path.exists() else {}
-    names = ['summary.json', 'analysis_status.json', 'annual_comparison.csv', 'daily_comparison.csv']
+    names = ['summary.json', 'analysis_status.json', 'annual_comparison.csv', 'daily_comparison.csv','seasonal_comparison.csv']
     names += [p.name for p in (kernel_path, ames_path) if p.exists()]
     hashes = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in names}
     report = render_report(summary, annual, daily, kernel, ames, hashes)

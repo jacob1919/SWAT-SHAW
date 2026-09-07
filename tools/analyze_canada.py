@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'validation/canada'
@@ -65,7 +66,7 @@ def water_budget(scope):
     with (DATA/'shaw/shaw_hru_daily.csv').open() as f:
         reader=csv.DictReader(f)
         required={'year','jday','hru','residual_mm','ice_mm','storage_start_mm','storage_end_mm',
-                  'retry_hours','max_hour_parts',*fluxes}-{'canopy_air_exchange_mm'}
+                  'retry_hours','max_hour_parts','jacobian_retry_hours',*fluxes}-{'canopy_air_exchange_mm'}
         has_canopy_exchange='canopy_air_exchange_mm' in (reader.fieldnames or [])
         missing=required-set(reader.fieldnames or [])
         if missing:raise ValueError(f'SHAW daily diagnostics missing columns: {sorted(missing)}')
@@ -82,9 +83,17 @@ def water_budget(scope):
             values['canopy_air_exchange_mm']=float(row['canopy_air_exchange_mm']) if has_canopy_exchange else 0.
             if not all(math.isfinite(v) for v in values.values()):raise ValueError(f'Nonfinite SHAW diagnostic: {key}')
             retries=values['retry_hours'];parts=values['max_hour_parts']
-            if not retries.is_integer() or not 0<=retries<=24 or not parts.is_integer() or parts<1:
+            jacobian_retries=values['jacobian_retry_hours']
+            if not jacobian_retries.is_integer() or not 0<=jacobian_retries<=retries:
+                raise ValueError(f'Invalid Jacobian retry counter: {key}')
+            if not retries.is_integer() or not 0<=retries<=24 or parts not in (1,2,4,8,16,32,64):
                 raise ValueError(f'Invalid retry counters: {key}')
             if abs(values['residual_mm'])>.10001:raise AssertionError(f'Water-budget gate exceeded: {key}')
+            reconstructed=(values['storage_end_mm']-values['storage_start_mm']-values['precip_mm']-
+                values['external_soil_mm']-values['surface_input_mm']-values['canopy_air_exchange_mm']+
+                values['et_mm']+values['runoff_mm']+values['percolation_mm']+values['lateral_mm'])
+            if abs(reconstructed-values['residual_mm'])>2.e-6:
+                raise ValueError(f'Water ledger does not reproduce reported residual: {key}')
             day=by_day.setdefault(date,defaultdict(float))
             weight=areas[hru]/coupled_area
             day['hru_days']+=1
@@ -92,6 +101,7 @@ def water_budget(scope):
             day['ice_mm']+=weight*values['ice_mm']
             day['max_abs_residual_mm']=max(day['max_abs_residual_mm'],abs(values['residual_mm']))
             day['retried_hru_hours']+=int(retries)
+            day['jacobian_retry_hours']+=int(jacobian_retries)
             day['hru_days_requiring_retry']+=int(retries>0)
             day['max_hour_parts']=max(day['max_hour_parts'],int(parts))
             day['storage_change_mm']+=weight*(values['storage_end_mm']-values['storage_start_mm'])
@@ -113,6 +123,7 @@ def water_budget(scope):
             'coupled_area_storage_change_mm':sum(d['storage_change_mm'] for d in days),
             'coupled_area_flux_totals_mm':{field:sum(d[field] for d in days) for field in fluxes},
             'retried_hru_hours':retries,'total_hru_hours':rows*24,
+            'jacobian_retry_hours':int(sum(d['jacobian_retry_hours'] for d in days)),
             'retried_hru_hours_percent':100*retries/(rows*24),
             'hru_days_requiring_retry':int(sum(d['hru_days_requiring_retry'] for d in days)),
             'max_hour_parts':int(max(d['max_hour_parts'] for d in days))}
@@ -121,10 +132,17 @@ def water_budget(scope):
 def read_output(path):
     with path.open() as f:
         next(f);headers=next(f).split();next(f)
+        # output_waterbal_header includes two HRU-only text headings, while
+        # basin_output writes only the numeric output_waterbal type (wet_stor
+        # is its last component). Remove this exact, verified trailing pair.
+        if path.name=='basin_wb_day.txt' and headers[-2:]==['plant_cov','mgt_ops']:
+            headers=headers[:-2]
         rows=[]
         for line in f:
             fields=line.split()
             if not fields:continue
+            if len(fields)!=len(headers):
+                raise ValueError(f'Output/header column count mismatch in {path}: {len(fields)} versus {len(headers)}')
             row={}
             for name,value in zip(headers,fields):
                 if name=='name':row[name]=value
@@ -143,6 +161,28 @@ def outlet_ids():
         if int(f[12])==0:result.append(int(f[0]))
     if not result:raise ValueError('No terminal channel in routing topology')
     return result
+
+def seasonal_results(wb,flow):
+    """Meteorological seasons; December belongs to the following winter year."""
+    output=[]
+    for mode in MODES:
+        groups=defaultdict(list)
+        for row in wb[mode]:
+            d=row['date'];month=d.month
+            season='DJF' if month in (12,1,2) else 'MAM' if month<=5 else 'JJA' if month<=8 else 'SON'
+            groups[(d.year+int(month==12),season)].append(row)
+        for (year,season),rows in sorted(groups.items(),key=lambda x:(x[0][0],('DJF','MAM','JJA','SON').index(x[0][1]))):
+            start={'DJF':dt.date(year-1,12,1),'MAM':dt.date(year,3,1),'JJA':dt.date(year,6,1),'SON':dt.date(year,9,1)}[season]
+            stop={'DJF':dt.date(year,3,1),'MAM':dt.date(year,6,1),'JJA':dt.date(year,9,1),'SON':dt.date(year,12,1)}[season]
+            peak=max(rows,key=lambda r:flow[mode][r['date']])
+            output.append({'model':mode,'season_year':year,'season':season,'days':len(rows),
+                'complete_season':len(rows)==(stop-start).days,'period_start':str(rows[0]['date']),
+                'period_end':str(rows[-1]['date']),
+                **{field+'_mm':sum(r[field] for r in rows) for field in ('precip','et','surq_gen','latq','perc','snomlt')},
+                'mean_outlet_m3s':sum(flow[mode][r['date']] for r in rows)/len(rows),
+                'peak_outlet_m3s':flow[mode][peak['date']],'peak_date':str(peak['date']),
+                'max_snowpack_mm':max(r['snopack'] for r in rows)})
+    return output
 
 def regression():
     count=0;files=0
@@ -192,6 +232,8 @@ def main():
     for mode in MODES:
         assert [r['date'] for r in wb[mode]]==dates
         assert sorted(flow[mode])==dates
+        if any(a['precip']!=b['precip'] for a,b in zip(wb['official'],wb[mode])):
+            raise ValueError(f'Basin precipitation differs despite identical raw input files: {mode}')
     # Validate the complete diagnostic record before publishing comparative metrics.
     scope,excluded=read_scope()
     areas={r['hru']:r['area_ha'] for r in scope}
@@ -222,6 +264,9 @@ def main():
         daily.append(row)
     with (OUT/'daily_comparison.csv').open('w',newline='') as f:
         writer=csv.DictWriter(f,fieldnames=list(daily[0]));writer.writeheader();writer.writerows(daily)
+    seasonal=seasonal_results(wb,flow)
+    with (OUT/'seasonal_comparison.csv').open('w',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(seasonal[0]));writer.writeheader();writer.writerows(seasonal)
     differences={}
     reference=np.array([flow['official'][d] for d in dates])
     for mode in MODES[1:]:
@@ -239,6 +284,24 @@ def main():
     axs[0].legend(ncol=3,fontsize=9)
     fig.suptitle('Canadian case: identical forcing, uncalibrated process comparison\n2020 warm-up; no observed discharge supplied')
     fig.savefig(OUT/'process_comparison.png',dpi=180);fig.savefig(OUT/'process_comparison.pdf');plt.close(fig)
+    fig,axs=plt.subplots(2,3,figsize=(14,6),sharey='row',layout='constrained')
+    for col,year in enumerate((2021,2022,2023)):
+        for mode in MODES:
+            rows=[r for r in wb[mode] if r['date'].year==year and r['date'].month<=5]
+            x=[r['date'] for r in rows]
+            axs[0,col].plot(x,[flow[mode][d] for d in x],lw=1.,label=labels[mode])
+            axs[1,col].plot(x,[r['snopack'] for r in rows],lw=1.)
+        axs[0,col].set_title(str(year)+(' (through April)' if year==2023 else ''))
+        for ax in axs[:,col]:
+            ax.set_xlim(dt.date(year,1,1),dt.date(year,5,31))
+            ax.xaxis.set_major_locator(mdates.MonthLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+            ax.grid(alpha=.2)
+    axs[0,0].set_ylabel('Outlet flow (m³/s)');axs[1,0].set_ylabel('Basin mean SWE (mm)')
+    axs[0,0].legend(fontsize=7)
+    fig.suptitle('Winter–spring process comparison: January–May windows\nUncalibrated model results; no observed discharge supplied')
+    fig.savefig(OUT/'winter_spring_comparison.png',dpi=180)
+    fig.savefig(OUT/'winter_spring_comparison.pdf');plt.close(fig)
     summary={'status':'complete','period':'2020-01-01 to 2023-04-30','simulation_days':len(date_range(SIMULATION_START,SIMULATION_END)),
              'evaluation_days':len(expected),'evaluation_period':f'{EVALUATION_START} to {SIMULATION_END}',
              'warmup':'2020','outlet_channel_ids':outlets,'total_area_ha':sum(areas.values()),
@@ -252,7 +315,8 @@ def main():
                       'daily_storage_depths':'mm; basin area means',
                       'water_budget':'mm liquid-water equivalent over the positive-area coupled domain only',
                       'canopy_air_exchange_mm':'signed atmospheric water input caused by changes to canopy-air control volume',
-                      'retry_hours':'count of HRU hours requiring subdivision; not elapsed wall-clock hours',
+                      'retry_hours':'count of HRU hours requiring subdivision or the additional conductance Jacobian; not elapsed wall-clock hours',
+                      'jacobian_retry_hours':'count of accepted HRU hours using the additional conductance Jacobian after complete rollback',
                       'max_hour_parts':'largest accepted subdivision count for one HRU hour'},
              'interpretation':'Uncalibrated model differences, not observational skill scores; no discharge observations supplied.',
              'runs':runs}

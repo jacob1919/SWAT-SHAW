@@ -1,0 +1,101 @@
+{
+  "scope": "Isolated HRU checks; other HRUs use original SWAT+. Not the full basin comparison.",
+  "executable_sha256": "9ca7c39c84922811f55e07c693b68912a7e1079a9acc5c178a0f5975b3a05a87",
+  "hrus": {
+    "1": {
+      "days": 1216,
+      "maximum_daily_water_residual_mm": 0.006052528047,
+      "totals_mm": {
+        "et_mm": 2254.453826725877,
+        "runoff_mm": 245.13951326012,
+        "percolation_mm": 1203.373379472179,
+        "lateral_mm": 0.00022466231745000003,
+        "residual_mm": 0.3459044549401107
+      },
+      "retry_hours": 138,
+      "jacobian_retry_hours": 1,
+      "maximum_hour_parts": 8,
+      "seconds": 60.40600000001723,
+      "daily_csv_sha256": "d79500d8fbe874c096fc02ef823ec36a9c7c0a96ae5240f361e46350fb31c0fc",
+      "hourly_check": {
+        "hours": 29184,
+        "max_abs_root_uptake_minus_transpiration_mm": 0.0,
+        "max_abs_water_residual_mm": 0.00331372563,
+        "csv_sha256": "a120289292abf07659cbb9caa14cbf66001775a0f0ac26c582a05c30bb66a9f4"
+      },
+      "previous_budget_failure": {
+        "year": 2021,
+        "jday": 197,
+        "before_root_fix_daily_residual_mm": -0.1200223095,
+        "current_daily_residual_mm": 0.0001526679171,
+        "baseline_csv_sha256": "49af45d028aac10bb23011c7ce0369f3b722206ec4090c6d11841164b8ac498a"
+      }
+    },
+    "6": {
+      "days": 1216,
+      "maximum_daily_water_residual_mm": 0.00361189985,
+      "totals_mm": {
+        "et_mm": 2140.400768065673,
+        "runoff_mm": 345.81414410271,
+        "percolation_mm": 1224.3238617320603,
+        "lateral_mm": 0.005455456248,
+        "residual_mm": 0.08114371524702021
+      },
+      "retry_hours": 53,
+      "jacobian_retry_hours": 51,
+      "maximum_hour_parts": 2,
+      "seconds": 20.59399999998277,
+      "daily_csv_sha256": "31025c72bb8fbcdbf6697906bb579d3a3c1df73b1bbe20cd8463d36867bcb4bc",
+      "hourly_check": {
+        "hours": 29184,
+        "max_abs_root_uptake_minus_transpiration_mm": 0.0,
+        "max_abs_water_residual_mm": 0.003004074205,
+        "csv_sha256": "98fb047a301477e30f49a97465e0c62706f06d24fa65e2a8ca3fce6a532eeb71"
+      }
+    },
+    "98": {
+      "days": 1216,
+      "maximum_daily_water_residual_mm": 0.007808373998,
+      "totals_mm": {
+        "et_mm": 2228.770725766707,
+        "runoff_mm": 250.17413457605,
+        "percolation_mm": 1224.266036927296,
+        "lateral_mm": 5.344349948e-07,
+        "residual_mm": 0.23553813105375157
+      },
+      "retry_hours": 100,
+      "jacobian_retry_hours": 5,
+      "maximum_hour_parts": 8,
+      "seconds": 46.937999999994645,
+      "daily_csv_sha256": "a134c54e7dc1e03bbf10b0cd5c0fbb67ad2cd1e07c31b24c822a8ec4423aff8b",
+      "hourly_check": {
+        "hours": 29184,
+        "max_abs_root_uptake_minus_transpiration_mm": 0.0,
+        "max_abs_water_residual_mm": 0.002563801794,
+        "csv_sha256": "1a442a474ecb9c4bc5a19e21d217d9f5566b515f0a706f946c81a57a4b4f245b"
+      },
+      "limited_strategy_sensitivity": {
+        "baseline_csv_sha256": "9870428e3c51154ad123d09d1b318ac3de70cb3415e6b26a0077709ad8bd901a",
+        "scope": "Same HRU, forcing and selected tolerances; before versus after optional conductance-Jacobian retry and root active-set correction. Not grid/time convergence or field skill.",
+        "totals": {
+          "et_mm": {
+            "before_conductance_retry_and_root_fix": 2228.433187769425,
+            "current": 2228.770725766707,
+            "percent_change": 0.015146875353263783
+          },
+          "runoff_mm": {
+            "before_conductance_retry_and_root_fix": 250.20039591941,
+            "current": 250.17413457605,
+            "percent_change": -0.010496123822467496
+          },
+          "percolation_mm": {
+            "before_conductance_retry_and_root_fix": 1224.090047857032,
+            "current": 1224.266036927296,
+            "percent_change": 0.014377134310673664
+          }
+        },
+        "max_daily_topsoil_temperature_difference_C": 0.1136951400000008
+      }
+    }
+  }
+}

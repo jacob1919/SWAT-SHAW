@@ -317,6 +317,10 @@ module shaw_common_access
     radres_tdirec, &
     radres_tdiffu
   save /SHP_RADRES/
+  real :: canlwr_tlclwr(8,10)
+  common /SHP_CANLWR/ &
+    canlwr_tlclwr
+  save /SHP_CANLWR/
   real :: sv_atstab_tmpair
   real :: sv_atstab_vapair
   real :: sv_atstab_zmlog

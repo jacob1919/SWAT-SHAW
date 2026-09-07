@@ -1,0 +1,28 @@
+{
+  "hru": 98,
+  "days": 1216,
+  "totals_mm": {
+    "et_mm": {
+      "vapor_1e4": 2228.381601646057,
+      "vapor_1e3": 2228.433187769425
+    },
+    "runoff_mm": {
+      "vapor_1e4": 250.17078680403,
+      "vapor_1e3": 250.20039591941
+    },
+    "percolation_mm": {
+      "vapor_1e4": 1224.104596026607,
+      "vapor_1e3": 1224.090047857032
+    },
+    "lateral_mm": {
+      "vapor_1e4": 5.344349948e-07,
+      "vapor_1e3": 5.344349948e-07
+    },
+    "residual_mm": {
+      "vapor_1e4": -0.3184742355706067,
+      "vapor_1e3": -0.2517234174075091
+    }
+  },
+  "max_daily_residual_mm": 0.09586787511,
+  "max_daily_temperature_difference_C": 0.11374488469999999
+}
