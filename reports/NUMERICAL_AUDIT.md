@@ -66,6 +66,16 @@ The captured hour now passes with two external parts: final surface-node tempera
 
 For isolated diagnosis, set `SWAT_SHAW_HRU` and optionally `SWAT_SHAW_CAPTURE_HOUR` to a space-separated year, Julian day and hour. The bridge writes the corresponding starting state and new hourly forcing to `shaw_failed_column.bin` before entering the kernel; `replay_shaw_column` can then reproduce that hour independently of SWAT+ routing.
 
+## Legacy constituent interface
+
+A subsequent output audit found asterisks in the native `percn` diagnostic. Directly assigning signed SHAW horizon water flux to SWAT's `ly%prk` violates `nut_nlch`'s one-way drainage assumption. Its top-down loop subtracts a negative nitrate flux from the donor, then clamps the receiving layer's negative nitrate inventory before continuing; repeated upward flow can create nitrate. An illustrative two-layer case with initial nitrate [1,0], effective mixing storage 10 and water fluxes [-1,1] creates about 0.10517 additional units of nitrate relative to [0,1], on top of the native 0.0001 stock floor shared by both cases.
+
+The bridge now exports `max(0, daily net horizon water flux)` to legacy `prk`; SHAW's signed water flux, storage and budget remain intact. The change is a compatibility restriction, not a SHAW solute port: upward solute transport is absent and the exported total water flux still includes vapor. Positive and negative subdaily crossings are not separately transported. Water-quality accuracy remains unvalidated, but the previous artificial nutrient creation must not be accepted even in a water/heat experiment because nutrient state can feed back on vegetation.
+
+Native plant/weather output uses adjacent fixed-width fields. An overflowing nitrate field can join its preceding number without whitespace and shift all later weather columns in a naive parser. The forcing comparison therefore reads the documented `4i6,2i8,2x,a16,25f12.3` layout. The report additionally requires finite values in all 25 numeric plant/weather fields and nonnegative bottom nitrate export for each coupled HRU in the complete evaluation period. Failed or manually stopped basin outputs are withheld from comparison.
+
+The preserved HRU 1 run had overflowing `percn` on all 850 printed evaluation days. The restricted interface removes those overflows in complete HRUs 1, 6, 19 and 98; their 25 numeric plant/weather fields are finite and bottom nitrate export is nonnegative. Their full 1,216-day water/heat diagnostic CSVs are byte-identical to the preceding version, showing that the water/heat solver itself was not clipped in these four profiles. Source/output hashes and exact trajectory comparisons are recorded in `canada/transport_fix_check.json`. The whole basin still requires its own completed run and checks.
+
 ## Atmospheric snowfall diagnostic
 
 Snowfall reporting now applies native `WTBULB`, pressure and snow-classification settings to atmospheric precipitation before canopy interception. A dry, above-freezing air temperature can therefore still produce diagnosed snow under the original wet-bulb rule. Tests cover this case, warm saturated rain and cold-air snow. The correction changes phase reporting, not SHAW's precipitation physics.

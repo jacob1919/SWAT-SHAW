@@ -1,0 +1,99 @@
+{
+  "status": "pass",
+  "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+  "prior_executable_sha256": "572afdb01e01fc300ca48229e270d3c1da8bd8357a3c69d6dbe8137cac53e17c",
+  "prior_hru1_percn_overflow_days": 850,
+  "first_prior_overflow": {
+    "year": 2021,
+    "jday": 1,
+    "hru": 1,
+    "printed_percn": "************"
+  },
+  "prior_hru1_pw_sha256": "c0bde6a30fb169f6268b1054efb10919488a766318613e9b3e5b0b92d2344989",
+  "isolated_transport_checks": {
+    "1": {
+      "status": "pass",
+      "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+      "hrus": [
+        1
+      ],
+      "evaluation_days": 850,
+      "checks": {
+        "hru_daily_rows": 850,
+        "finite_numeric_fields_per_row": 25,
+        "negative_bottom_nitrate_exports": 0,
+        "max_bottom_nitrate_export_kg_ha_day": 4.539,
+        "output_sha256": "92a4b930095e4ceb5d7802d7e8657ec6364b31f1834c29c16287d7d9762ed13e"
+      },
+      "scope": "Finite native plant/weather output and nonnegative nitrate export only; not validation of solute physics. SHAW retains signed water internally; legacy SWAT transport receives positive daily net downward water flux, including its vapor contribution. Upward solute transport is not represented."
+    },
+    "6": {
+      "status": "pass",
+      "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+      "hrus": [
+        6
+      ],
+      "evaluation_days": 850,
+      "checks": {
+        "hru_daily_rows": 850,
+        "finite_numeric_fields_per_row": 25,
+        "negative_bottom_nitrate_exports": 0,
+        "max_bottom_nitrate_export_kg_ha_day": 15.33,
+        "output_sha256": "eb7c63c78cbecfe58cd45038fe950ca6db3c5ab0908ab417609bb030d1e6c179"
+      },
+      "scope": "Finite native plant/weather output and nonnegative nitrate export only; not validation of solute physics. SHAW retains signed water internally; legacy SWAT transport receives positive daily net downward water flux, including its vapor contribution. Upward solute transport is not represented."
+    },
+    "19": {
+      "status": "pass",
+      "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+      "hrus": [
+        19
+      ],
+      "evaluation_days": 850,
+      "checks": {
+        "hru_daily_rows": 850,
+        "finite_numeric_fields_per_row": 25,
+        "negative_bottom_nitrate_exports": 0,
+        "max_bottom_nitrate_export_kg_ha_day": 4.51,
+        "output_sha256": "a0c90c303ba0d4853d6c86140c0069a0337aee99a57d12061eda15cc5debfc48"
+      },
+      "scope": "Finite native plant/weather output and nonnegative nitrate export only; not validation of solute physics. SHAW retains signed water internally; legacy SWAT transport receives positive daily net downward water flux, including its vapor contribution. Upward solute transport is not represented."
+    },
+    "98": {
+      "status": "pass",
+      "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+      "hrus": [
+        98
+      ],
+      "evaluation_days": 850,
+      "checks": {
+        "hru_daily_rows": 850,
+        "finite_numeric_fields_per_row": 25,
+        "negative_bottom_nitrate_exports": 0,
+        "max_bottom_nitrate_export_kg_ha_day": 5.68,
+        "output_sha256": "23b8a78a4717dd3420cd3fa2dedd43ea89f4559fd671952e232ff0af4b114d9c"
+      },
+      "scope": "Finite native plant/weather output and nonnegative nitrate export only; not validation of solute physics. SHAW retains signed water internally; legacy SWAT transport receives positive daily net downward water flux, including its vapor contribution. Upward solute transport is not represented."
+    }
+  },
+  "four_hru_water_heat_trajectory_checks": {
+    "1": {
+      "daily_csv_sha256": "d79500d8fbe874c096fc02ef823ec36a9c7c0a96ae5240f361e46350fb31c0fc",
+      "equal_to_pre_transport_fix": true
+    },
+    "6": {
+      "daily_csv_sha256": "31025c72bb8fbcdbf6697906bb579d3a3c1df73b1bbe20cd8463d36867bcb4bc",
+      "equal_to_pre_transport_fix": true
+    },
+    "19": {
+      "daily_csv_sha256": "1d736869ec67945a403fcc90532be52e84719e4d35fd07a630baab178c1d6930",
+      "equal_to_pre_transport_fix": true
+    },
+    "98": {
+      "daily_csv_sha256": "a134c54e7dc1e03bbf10b0cd5c0fbb67ad2cd1e07c31b24c822a8ec4423aff8b",
+      "equal_to_pre_transport_fix": true
+    }
+  },
+  "method": "Map the positive daily net horizon water flux to legacy SWAT prk. Do not alter signed SHAW water/heat state. Upward solute transfer and vapor/liquid separation remain outside this compatibility restriction.",
+  "scope": "The four complete isolated water/heat trajectories remain byte-identical in this case. This does not establish nutrient or water-quality accuracy, or substitute for a completed basin run."
+}

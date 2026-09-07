@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+  "hrus": [
+    6
+  ],
+  "evaluation_days": 850,
+  "checks": {
+    "hru_daily_rows": 850,
+    "finite_numeric_fields_per_row": 25,
+    "negative_bottom_nitrate_exports": 0,
+    "max_bottom_nitrate_export_kg_ha_day": 15.33,
+    "output_sha256": "eb7c63c78cbecfe58cd45038fe950ca6db3c5ab0908ab417609bb030d1e6c179"
+  },
+  "scope": "Finite native plant/weather output and nonnegative nitrate export only; not validation of solute physics. SHAW retains signed water internally; legacy SWAT transport receives positive daily net downward water flux, including its vapor contribution. Upward solute transport is not represented."
+}

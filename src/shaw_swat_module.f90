@@ -275,11 +275,14 @@ contains
         soil(j)%phys(k)%st=max(0.,water-soil(j)%phys(k)%wpmm)
         soil(j)%sw=soil(j)%sw+soil(j)%phys(k)%st
         s%exported(k)=soil(j)%phys(k)%st
-        ! Signed vertical flux interpolated to the original horizon bottom.
+        ! Legacy SWAT constituent routines require nonnegative downward
+        ! percolation. Negative prk creates nitrate through their one-way
+        ! layer loop. SHAW retains the signed water flux and state internally;
+        ! upward constituent transport is outside this water/heat bridge.
         angle=soil(j)%phys(k)%d/1000./(c%zs(2)-c%zs(1))+.5
         i=min(n-1,max(1,int(angle)))
         frac=max(0.,min(1.,angle-real(i)))
-        soil(j)%ly(k)%prk=1000.*((1.-frac)*flux(20+i)+frac*flux(20+min(n-1,i+1)))
+        soil(j)%ly(k)%prk=max(0.,1000.*((1.-frac)*flux(20+i)+frac*flux(20+min(n-1,i+1))))
       enddo
       hru(j)%sno_mm=real(shaw_swe(c)*1000.)
       canstor(j)=sum(c%pcandt)*1000.

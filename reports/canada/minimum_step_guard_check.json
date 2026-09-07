@@ -1,5 +1,7 @@
 {
   "status": "pass",
+  "kernel_source_sha256": "f473719c85dd1ce2f8aaded50a446b9483e626da9594b0e0d696801e8d13cb70",
+  "scope": "Historical captured-hour replay with the same water/heat kernel source; subsequent legacy-transport bridge changes require separate basin validation.",
   "failure": {
     "hru": 19,
     "year": 2022,

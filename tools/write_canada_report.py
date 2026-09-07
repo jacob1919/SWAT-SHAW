@@ -48,6 +48,10 @@ def validate(summary, status, annual, daily, run_root=None):
             raise ValueError(f'Report withheld: {mode} has been rerun since the comparison was generated')
     if runs['shaw']['sha256'] != runs['coupling_off']['sha256']:
         raise ValueError('Report withheld: coupled and coupling-off executable hashes differ')
+    for name in ('forcing_parity','transport_compatibility'):
+        check=summary[name]
+        if check.get('status')!='pass' or check.get('coupled_executable_sha256')!=runs['shaw']['sha256']:
+            raise ValueError(f'Report withheld: stale or unsuccessful {name}')
     if not math.isclose(number(summary['total_area_km2']), 15.1818012, abs_tol=1e-7):
         raise ValueError('Unexpected basin area; this report describes the supplied Canadian case')
     if summary['total_hrus'] != 142 or summary['coupled_hrus'] != 123:
@@ -90,6 +94,13 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
              f"其余 {summary['total_hrus'] - summary['coupled_hrus']} 个 HRU 保留原始过程；零面积占位对象不计入统计。"
              f"流量统计使用终端河道 {', '.join(str(x) for x in summary['outlet_channel_ids'])}。")
     annual_rows = []
+    reasons={'SHAW coupled':'SHAW 耦合','urban impervious surface':'城市 HRU，保留原始过程',
+             'surface water body':'地表水体，保留原始过程','tile drainage':'暗管排水，保留原始过程',
+             'septic system':'化粪系统，保留原始过程'}
+    scope_table=table(['过程配置','HRU 数','面积（ha）','流域面积占比'],
+        [[reasons.get(reason,reason),group['hrus'],fmt(group['area_ha'],5),
+          fmt(100*group['area_ha']/number(summary['total_area_ha']),2)+'%']
+         for reason,group in summary['scope_groups'].items()])
     for year in (2021, 2022, 2023):
         for mode in MODES:
             r = next(r for r in annual if r['model'] == mode and int(r['year']) == year)
@@ -133,12 +144,12 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
                   if b.get('canopy_air_exchange_reported') else '未单列')
         budget_rows.append([label, b['days'], fmt(b['max_absolute_hru_daily_residual_mm'], 6),
             fmt(b['coupled_area_cumulative_signed_residual_mm'], 6),
-            fmt(b['coupled_area_sum_absolute_daily_residual_mm'], 6), canopy])
+            fmt(b['coupled_area_cumulative_absolute_hru_residual_mm'], 6), canopy])
         retry_rows.append([label, f"{b['hru_days']:,}", f"{b['retried_hru_hours']:,}",
             fmt(b['retried_hru_hours_percent'], 4) + '%', f"{b['hru_days_requiring_retry']:,}", b['max_hour_parts'],
             f"{b['jacobian_retry_hours']:,}"])
     budget_table = table(['时段', '天数', '最大单 HRU 日残差绝对值（mm）',
-                           '累计有符号残差（mm）', '逐日面平均残差绝对值之和（mm）',
+                           '累计有符号残差（mm）', '累计绝对残差（mm，先逐 HRU 取绝对值）',
                            '累计冠层空气水量交换（mm）'], budget_rows)
     retry_table = table(['时段', 'HRU·日', '发生重试的 HRU·小时', '小时占比', '发生重试的 HRU·日',
                           '最大小时分段数','采用附加导数的 HRU·小时'], retry_rows)
@@ -176,9 +187,9 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
                           '比较包括状态、通量和重试计数；该案例的这些 HRU 没有上游 HRU 来水，因而应当一致。')
     if guard and guard.get('status') == 'pass':
         replay=guard['corrected_replay']
-        test_lines.append(f"原生最小步长处保留六处大幅更新保护，越界尝试完整回退。HRU 19 的旧失败小时"
-                          f"现用 {replay['parts']} 个分段通过，水量残差 {fmt(replay['water_residual_mm'],9)} mm；"
-                          '详见最小步长保护复查记录。')
+        test_lines.append(f"原生最小步长处保留六处大幅更新保护，越界尝试完整回退。历史捕获的 HRU 19 失败小时"
+                          f"重放时用 {replay['parts']} 个分段通过，水量残差 {fmt(replay['water_residual_mm'],9)} mm；"
+                          '该重放的水热内核源码与本次相同，详见最小步长保护复查记录。')
     if not kernel:
         test_lines.append('未找到 kernel_checks.json；本报告不新增内核试验通过的断言。')
     run_rows = []
@@ -196,6 +207,10 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
 
 {scope}
 
+{scope_table}
+
+逐 HRU 面积、过程配置和选择原因见 [耦合范围 CSV](hru_scope.csv)。若一个 HRU 同时符合多项保留原始过程的条件，表中记录程序最后匹配的原因，每个 HRU 只计一次。
+
 本次重新核对了此前报告的基础口径：旧报告把面积的 ha 数值标为 km²，并将该起止日期的模拟天数写为 1,456；本报告采用输入面积换算后的 15.1818012 km² 和按日历计算的 1,216 天。旧报告文件保留原样。
 
 2020 年的 366 天作为预热，评价期为 **2021-01-01 至 2023-04-30，共 850 天**。2023 年仅含 1–4 月的 120 天，年度累计量不能与完整年度直接比较。该案例代表加拿大季节性冻土环境，不应据此外推多年冻土区。
@@ -203,6 +218,8 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
 案例来自用户此前使用的 [SWAT+ 用户组加拿大数据](https://groups.google.com/g/swatplus/c/lnI2RShJmZw)。三个版本采用相同的 79 个输入文件，沿用此前土壤水文组数字 `3 → C` 的修正，并统一日输出设置；输入 SHA256 清单保存在本机 `validation/canada/input_manifest.json`。原始 AWC 数值问题由共同的 SWAT+ 初始化规则处理，仍是参数解释的限制。
 
 逐日降水和气温来自案例输入，短波辐射、相对湿度和风速来自 SWAT+ 气象发生器。耦合时将日降水均匀分配到 24 小时，重建日内温度与短波，湿度和风速日内保持不变，云量暂定 0.5；这些逐小时序列是构造强迫，不能视为逐小时观测。
+
+除了输入哈希，程序还检查了评价期全部 142 个 HRU、850 天的实际日输出：降水、最高/最低/平均气温、短波辐射、湿度和风速在三个版本间按输出精度完全一致，见 [气象一致性记录](forcing_parity.json)。2020 年预热期未打印这些逐日表，该时段由输入文件哈希覆盖。
 
 共同 SWAT+ 基线为 `61c940f40b5da768edc62a30641d9a1fbebc2708`。既有冻融可执行文件还包含冻融之外的代码修改，因此它与原始版的差异不能全部归因于冻融机制。耦合版只移植与产汇流水热有关的 SHAW 过程，不启用 SHAW 溶质或 CO₂ 过程；仍保留 SWAT+ 管理、植被生长和空间汇流框架。部分 HRU 保留原始水热过程，出口结果反映这一混合配置。
 
@@ -256,7 +273,7 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 {budget_table}
 
-累计残差、逐日残差绝对值之和及冠层交换以 **SHAW 耦合域面积**加权；它们不是全流域水量平衡，也不能用来证明能量守恒。“逐日面平均残差绝对值之和”先对 HRU 加权再取绝对值，因此仍可能抵消同一天不同 HRU 的误差；最大单 HRU 日残差同时用于检查局地误差。程序保留 `0.1 mm/HRU/day` 的停止门槛，累计有符号误差须结合模拟长度阅读。
+累计残差及冠层交换以 **SHAW 耦合域面积**加权；它们不是全流域水量平衡，也不能用来证明能量守恒。累计绝对残差先对每个 HRU 每天的残差取绝对值，再按面积加权和累计，避免不同地点或日期的正负误差互相抵消；最大单 HRU 日残差同时检查局地误差。汇总 JSON 另保留“先面平均、再逐日取绝对值”的统计，两个指标不能混用。程序保留 `0.1 mm/HRU/day` 的停止门槛，累计误差须结合模拟长度阅读。
 
 {retry_table}
 
@@ -272,6 +289,8 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 当前气孔和植被水力参数采用默认值；残茬层尚未由 SWAT+ 映射，管理引起的土壤物理参数变化尚未逐日同步。底部固定温度取气象发生器的年均气温，外部来水按接收土层温度进入，侧向系数缺乏独立各向异性资料。这些设置会影响水热分配，原 SWAT+ 参数也不能直接等价为 SHAW 参数。耦合 HRU 的 `esoil` 表示净蒸散扣除蒸腾后的剩余量，可能包含截留蒸发、雪升华或凝结，不能独立解释为裸土蒸发。
 
+现有 SWAT+ 养分程序只处理向下渗漏。桥接保留 SHAW 内部有符号的水通量和水热状态，仅把土层底部日净水通量的正值传入这些旧程序，避免负渗漏造成养分凭空增加；未实现向上溶质输运，也未从这一总水通量中单独剔除水汽贡献。这是水热研究原型的兼容边界，不是完整溶质耦合。评价期耦合 HRU 的 {summary['transport_compatibility']['checks']['hru_daily_rows']:,} 条植被/气象记录中，25 个数值字段均为有限值，底部硝态氮输出均非负，见 [接口检查](transport_compatibility.json)。这项检查不能代替水质验证。
+
 进一步判断科学增益，需要真实逐小时强迫、观测流量及积雪/土温资料，开展分模型率定和独立时段验证，并补充网格与时间步收敛、完整能量账本、深层边界敏感性和更多下垫面试验。水质代码保留并不意味着它对新水通量的适用性已通过验证。详细接口假设见 [耦合说明](../../SWAT_SHAW.md)。
 
 ## 复现标识
@@ -284,7 +303,7 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 {hash_lines}
 
-先完成四项运行，再依次执行 `tools/analyze_canada.py` 和 `tools/write_canada_report.py`。报告生成器要求状态文件与汇总均完成、运行标识一致，并核对 9 条年度统计与 850 天日序列；任何运行重新开始后，必须重新生成分析，不能复用本报告。
+先完成四项运行及独立 HRU 检查，再依次执行 `tools/check_canada_column_parity.py`、`tools/analyze_canada.py` 和 `tools/write_canada_report.py`。报告生成器要求状态文件与汇总均完成、运行标识一致，并核对 9 条年度统计与 850 天日序列；任何运行重新开始后，必须重新生成分析，不能复用本报告。
 """
 
 
@@ -302,7 +321,7 @@ def main():
     with (directory / 'daily_comparison.csv').open(encoding='utf-8', newline='') as f:
         daily = list(csv.DictReader(f))
     validate(summary, status, annual, daily, ROOT / 'validation/canada')
-    for name in ('process_comparison.png', 'process_comparison.pdf','seasonal_comparison.csv',
+    for name in ('process_comparison.png', 'process_comparison.pdf','seasonal_comparison.csv','hru_scope.csv',
                  'winter_spring_comparison.png','winter_spring_comparison.pdf','thermal_comparison.png','thermal_comparison.pdf'):
         if not (directory / name).is_file() or (directory / name).stat().st_size == 0:
             raise ValueError(f'Report withheld: missing comparison plot {name}')
@@ -320,9 +339,10 @@ def main():
         raise ValueError('Report withheld: basin/isolated-column check is stale or unsuccessful')
     guard_path=directory/'minimum_step_guard_check.json'
     guard=load_json(guard_path) if guard_path.exists() else None
-    if guard and (guard.get('status')!='pass' or guard['complete_isolated_run']['executable_sha256']!=summary['runs']['shaw']['sha256']):
+    if guard and (guard.get('status')!='pass' or guard.get('kernel_source_sha256')!=summary['runs']['shaw']['source_sha256']['src/shaw/shaw_water_heat.for']):
         raise ValueError('Report withheld: minimum-step check is stale or unsuccessful')
-    names = ['summary.json', 'analysis_status.json', 'annual_comparison.csv', 'daily_comparison.csv','seasonal_comparison.csv']
+    names = ['summary.json', 'analysis_status.json', 'annual_comparison.csv', 'daily_comparison.csv','seasonal_comparison.csv','hru_scope.csv',
+             'forcing_parity.json','transport_compatibility.json']
     names += [p.name for p in (kernel_path, ames_path) if p.exists()]
     if parity:names.append(parity_path.name)
     if guard:names.append(guard_path.name)

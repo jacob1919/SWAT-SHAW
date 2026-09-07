@@ -1,6 +1,6 @@
 {
   "scope": "Isolated HRU checks; other HRUs use original SWAT+. Not the full basin comparison.",
-  "executable_sha256": "572afdb01e01fc300ca48229e270d3c1da8bd8357a3c69d6dbe8137cac53e17c",
+  "executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
   "hrus": {
     "1": {
       "days": 1216,
@@ -15,7 +15,7 @@
       "retry_hours": 138,
       "jacobian_retry_hours": 1,
       "maximum_hour_parts": 8,
-      "seconds": 60.35899999999674,
+      "seconds": 62.56299999996554,
       "daily_csv_sha256": "d79500d8fbe874c096fc02ef823ec36a9c7c0a96ae5240f361e46350fb31c0fc",
       "hourly_check": {
         "hours": 29184,
@@ -44,7 +44,7 @@
       "retry_hours": 53,
       "jacobian_retry_hours": 51,
       "maximum_hour_parts": 2,
-      "seconds": 19.90600000001723,
+      "seconds": 18.625,
       "daily_csv_sha256": "31025c72bb8fbcdbf6697906bb579d3a3c1df73b1bbe20cd8463d36867bcb4bc",
       "hourly_check": {
         "hours": 29184,
@@ -66,7 +66,7 @@
       "retry_hours": 139,
       "jacobian_retry_hours": 2,
       "maximum_hour_parts": 8,
-      "seconds": 58.062999999994645,
+      "seconds": 56.31199999997625,
       "daily_csv_sha256": "1d736869ec67945a403fcc90532be52e84719e4d35fd07a630baab178c1d6930",
       "hourly_check": {
         "hours": 29184,
@@ -88,7 +88,7 @@
       "retry_hours": 100,
       "jacobian_retry_hours": 5,
       "maximum_hour_parts": 8,
-      "seconds": 45.219000000011874,
+      "seconds": 43.32900000002701,
       "daily_csv_sha256": "a134c54e7dc1e03bbf10b0cd5c0fbb67ad2cd1e07c31b24c822a8ec4423aff8b",
       "hourly_check": {
         "hours": 29184,

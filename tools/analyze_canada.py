@@ -10,6 +10,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from check_canada_forcing import check_forcing
+from check_canada_transport import check_transport
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'validation/canada'
@@ -49,7 +51,9 @@ def read_scope():
         if area==0:
             excluded+=1
             continue
-        scope.append({'hru':hru,'area_ha':area,'coupled':row['coupled'].strip().upper()=='T'})
+        flag=row['coupled'].strip().upper()
+        if flag not in ('T','F'):raise ValueError(f'Invalid coupled flag: {row}')
+        scope.append({'hru':hru,'area_ha':area,'coupled':flag=='T','reason':row['reason'].strip()})
     if not scope or not any(r['coupled'] for r in scope):raise ValueError('No positive-area coupled HRUs')
     return scope,excluded
 
@@ -98,6 +102,7 @@ def water_budget(scope):
             weight=areas[hru]/coupled_area
             day['hru_days']+=1
             day['residual_mm']+=weight*values['residual_mm']
+            day['mean_absolute_hru_residual_mm']+=weight*abs(values['residual_mm'])
             day['ice_mm']+=weight*values['ice_mm']
             day['max_abs_residual_mm']=max(day['max_abs_residual_mm'],abs(values['residual_mm']))
             day['retried_hru_hours']+=int(retries)
@@ -119,6 +124,7 @@ def water_budget(scope):
             'max_absolute_hru_daily_residual_mm':max(d['max_abs_residual_mm'] for d in days),
             'coupled_area_cumulative_signed_residual_mm':sum(d['residual_mm'] for d in days),
             'coupled_area_sum_absolute_daily_residual_mm':sum(abs(d['residual_mm']) for d in days),
+            'coupled_area_cumulative_absolute_hru_residual_mm':sum(d['mean_absolute_hru_residual_mm'] for d in days),
             'max_coupled_area_ice_water_mm':max(d['ice_mm'] for d in days),
             'coupled_area_storage_change_mm':sum(d['storage_change_mm'] for d in days),
             'coupled_area_flux_totals_mm':{field:sum(d[field] for d in days) for field in fluxes},
@@ -211,6 +217,8 @@ def main():
     if errors:
         raise SystemExit('Three-model comparison withheld:\n'+'\n'.join(errors)+
                          '\nAny existing comparison artifacts describe an earlier run; inspect analysis_status.json.')
+    forcing=check_forcing()
+    transport=check_transport()
     outlets=outlet_ids()
     wb={m:read_output(DATA/m/'basin_wb_day.txt') for m in MODES}
     pw={m:read_output(DATA/m/'basin_pw_day.txt') for m in MODES}
@@ -235,13 +243,21 @@ def main():
         assert sorted(flow[mode])==dates
         if any(a['precip']!=b['precip'] for a,b in zip(wb['official'],wb[mode])):
             raise ValueError(f'Basin precipitation differs despite identical raw input files: {mode}')
-        if any(a['tmpav']!=b['tmpav'] for a,b in zip(pw['official'],pw[mode])):
-            raise ValueError(f'Basin air temperature differs: {mode}')
+        for field in ('tmx','tmn','tmpav','solarad','wndspd','rhum'):
+            if any(a[field]!=b[field] for a,b in zip(pw['official'],pw[mode])):
+                raise ValueError(f'Basin weather differs: {mode}/{field}')
     # Validate the complete diagnostic record before publishing comparative metrics.
     scope,excluded=read_scope()
     areas={r['hru']:r['area_ha'] for r in scope}
     coupled_area=sum(r['area_ha'] for r in scope if r['coupled'])
     budgets,budget_days=water_budget(scope)
+    with (OUT/'hru_scope.csv').open('w',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=list(scope[0]));writer.writeheader();writer.writerows(scope)
+    scope_groups={}
+    for row in scope:
+        key='SHAW coupled' if row['coupled'] else row['reason']
+        group=scope_groups.setdefault(key,{'hrus':0,'area_ha':0.})
+        group['hrus']+=1;group['area_ha']+=row['area_ha']
     annual=[]
     for mode in MODES:
         for year in (2021,2022,2023):
@@ -330,8 +346,11 @@ def main():
              'warmup':'2020','outlet_channel_ids':outlets,'total_area_ha':sum(areas.values()),
              'total_area_km2':sum(areas.values())/100,
              'coupled_area_ha':coupled_area,'coupled_hrus':sum(r['coupled'] for r in scope),
+             'scope_groups':scope_groups,
              'total_hrus':len(scope),'regression':reg,'water_budget':budgets,'model_differences':differences,
              'soil_thermal_response':thermal,
+             'forcing_parity':forcing,
+             'transport_compatibility':transport,
              'excluded_zero_area_scope_rows':excluded,
              'units':{'outlet_flow':'m3/s; sum of terminal channel daily mean flows',
                       'annual_depths':'mm accumulated over the reported dates; 2023 is partial',
