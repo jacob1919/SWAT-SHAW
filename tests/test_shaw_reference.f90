@@ -13,6 +13,7 @@ program test_shaw_reference
   call shaw_initialize(c,21,z,temp,water,45.25,106.)
   call shaw_set_soil_parameters(c,rho,k,zero,sand,silt,clay,zero,zero,ae,sat,b)
   call shaw_set_vegetation(c,2.,.8,.3,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
   c%clouds=.5
   open(newunit=u,file='reference.csv',status='replace')
   do t=1,720

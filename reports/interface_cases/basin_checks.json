@@ -1,0 +1,89 @@
+{
+  "totals": {
+    "official": {
+      "precip": 2615.4,
+      "et": 1220.42,
+      "surq_gen": 1318.633,
+      "perc": 47.722,
+      "latq": 37.092,
+      "mean_outlet_m3s": 0.21529429983239123,
+      "high_flow_days": 20,
+      "high_flow_volume_percent": 99.97423234009322
+    },
+    "existing_ft": {
+      "precip": 2615.4,
+      "et": 1228.114,
+      "surq_gen": 1305.569,
+      "perc": 63.583999999999996,
+      "latq": 58.637,
+      "mean_outlet_m3s": 0.21506831935077647,
+      "high_flow_days": 20,
+      "high_flow_volume_percent": 99.6613544231084
+    },
+    "shaw": {
+      "precip": 2615.4,
+      "et": 1410.186,
+      "surq_gen": 225.846,
+      "perc": 989.98,
+      "latq": 0.006,
+      "mean_outlet_m3s": 0.14622951912826154,
+      "high_flow_days": 10,
+      "high_flow_volume_percent": 73.86776023895104
+    }
+  },
+  "weather_parity": {
+    "hru_pw_day.txt": {
+      "rows": 120700,
+      "fields": [
+        "tmx",
+        "tmn",
+        "tmpav",
+        "solarad",
+        "wndspd",
+        "rhum"
+      ],
+      "different_values": 0
+    },
+    "hru_wb_day.txt": {
+      "rows": 120700,
+      "fields": [
+        "precip"
+      ],
+      "different_values": 0
+    }
+  },
+  "transport": {
+    "hru_daily_rows": 104550,
+    "finite_numeric_fields_per_row": 25,
+    "negative_bottom_nitrate_exports": 0,
+    "max_bottom_nitrate_export_kg_ha_day": 14.196,
+    "output_sha256": "fc1f01ba8a951966062360a4d1450108f9d66becda252c2b8f2ccfe73b36dd18"
+  },
+  "column_parity": {
+    "1": {
+      "days": 1216,
+      "values_compared": 25536,
+      "different_values": 0
+    },
+    "6": {
+      "days": 1216,
+      "values_compared": 25536,
+      "different_values": 0
+    },
+    "19": {
+      "days": 1216,
+      "values_compared": 25536,
+      "different_values": 0
+    },
+    "98": {
+      "days": 1216,
+      "values_compared": 25536,
+      "different_values": 0
+    }
+  },
+  "shared_input_files": 79,
+  "period": "2021-01-01 to 2023-04-30 (850 days)",
+  "source_status": "Completed simulations and numerical/process diagnostics, without observations.",
+  "coupled_executable_sha256": "59f0ed0d4d49fd1f09636a659ebea1de4840fcc861d960447bcc0c27c4b42903",
+  "full_basin_seconds": 10411.125
+}

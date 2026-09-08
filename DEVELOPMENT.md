@@ -26,21 +26,40 @@ Use identical input bytes in the three runs. Preserve the existing numeric hydro
 - [x] Official SHAW reference reproduction and isolated HRU state verification (720-hour no-solute canopy fixture).
 - [x] SWAT+ integration with explicit process ownership and budget diagnostics (experimental).
 - [x] Build and SHAW numerical tests pass; fresh official Ames comparison passes (historical golden exception recorded).
-- [ ] Identical-input three-version Canadian runs complete.
-- [ ] Daily/seasonal/annual comparison, conservation and limitations documented.
+- [x] Identical-input three-version Canadian runs complete.
+- [x] Daily/seasonal/annual comparison, conservation and limitations documented.
 
 Research data and generated run outputs stay local; the comparison tooling and reports carry hashes and provenance.
 
-## Current verified checkpoints
+## Pre-review verified checkpoints
 
 - 720-hour reference: 282,960 physical quantities agree exactly with the official solver using original SAVE variables.
 - Two independent/interleaved columns agree exactly; hourly budget below 0.002 mm; external addition/withdrawal conservative.
 - Canadian official and existing FT runs complete (2020-2023 April); off-switch regression has 95 output files / 484,287 rows identical after the build banner.
-- Formerly failing HRUs 1, 6, 19 and 98 each completed all 1,216 days after the recorded numerical corrections. Their maximum daily water residuals are 0.006053, 0.003612, 0.005894 and 0.007808 mm. The full coupled basin run remains subject to its 0.1 mm/HRU/day budget gate. Do not label partial output as a complete comparison.
+- Formerly failing HRUs 1, 6, 19 and 98 each completed all 1,216 days after the recorded numerical corrections. Their maximum daily water residuals are 0.006053, 0.003612, 0.005894 and 0.007808 mm. All 4,864 daily records, with 20 diagnostic columns each, exactly match their trajectories in the completed full-basin run.
 - A minimum-step Newton overshoot in HRU 19 is now rejected before invalid material coefficients are evaluated. The captured hour passes with two parts and a -0.0001164 mm water residual; the earlier 926 daily records and the other three complete HRU trajectories remain unchanged.
-- Legacy SWAT nutrient routing now receives only nonnegative daily net downward horizon flux. Signed SHAW water flux remains internal. The earlier assignment allowed artificial nitrate creation in the one-way nutrient loop and made the old basin attempt unsuitable for final comparison. Four current isolated checks have finite plant/weather values and nonnegative nitrate export; their complete water/heat CSVs remain byte-identical to the pre-interface-fix trajectories. Evidence: `reports/canada/transport_fix_check.json`. The full basin is being rerun with this restriction.
+- Legacy SWAT nutrient routing now receives only nonnegative daily net downward horizon flux. Signed SHAW water flux remains internal. The earlier assignment allowed artificial nitrate creation in the one-way nutrient loop and made the old basin attempt unsuitable for final comparison. Four current isolated checks have finite plant/weather values and nonnegative nitrate export; their complete water/heat CSVs remain byte-identical to the pre-interface-fix trajectories. Evidence: `reports/canada/transport_fix_check.json`. The complete basin rerun passes the same finite-value and nonnegative nitrate-export checks on all 104,550 coupled HRU evaluation records.
 - Final analysis checks the actual printed precipitation, temperatures, radiation, humidity and wind for every HRU in the 850-day evaluation period. It also rejects nonfinite native plant/weather diagnostics and negative bottom nitrate export on coupled HRUs. These are compatibility checks, not solute-model validation.
 - Four SHAW tests pass: state isolation, dynamic canopy, analytic conductance derivatives and conservative nonnegative root supply. Current evidence and executable hashes are in `reports/canada/kernel_checks.json` and `canopy_solver_checks.json`.
 - Initial adaptive-step failures now return a status and restore/retry shorter steps. Native canopy-vapor tolerance is separately configurable, with official default preserved for reference parity.
 - Ames bundled golden regression differs; all 42 selected files agree with a fresh run of the pinned official executable.
 - See `SWAT_SHAW.md` for process mapping, units, assumptions and remaining scientific validation.
+
+## Completed Canadian comparison
+
+All three versions and the coupling-off run completed 2020-01-01 through 2023-04-30. The final coupled executable SHA256 is `64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56`. Evaluation excludes the 366-day warm-up and contains 850 days. Across 149,568 coupled HRU days, the maximum absolute daily water residual is 0.007808374 mm; the coupled-area cumulative absolute residual, taking absolute values before averaging, is 0.442391229 mm.
+
+The [Chinese report](reports/canada/REPORT.md) includes daily/seasonal/annual data, three figure sets, hashes and limitations. Land HRU means use 15.1818012 km²; outlet runoff depth uses the registered 16.353104 km² drainage area including the independent reservoir. The supplied reservoir release rule explains a roughly 9 m³/s pulse scale, so outlet peaks must not be treated directly as natural snowmelt peaks. These remain uncalibrated model comparisons without accompanying observations.
+
+## Post-review verified checkpoints
+
+- [x] Explicit aspect handling and separate hydraulic/radiation slopes.
+- [x] Fixed meteorological reference height and documented wind conversion; temperature/RH uniform-profile approximation retained explicitly.
+- [x] Snow liquid-release semantics recorded separately from pure phase-change melt.
+- [x] CanSIS soil provenance resolves AWC percent-to-fraction conversion; all three model inputs corrected in isolated copies.
+- [x] Eight SHAW tests and rebuilt original-algorithm reference pass.
+- [x] Three full-basin runs and 95-file coupling-off regression complete.
+- [x] Four representative HRUs agree with the full basin for 4,864 days / 102,144 values.
+- [x] Seven HRU 1 attribution cases complete, including native estimated thermal boundary and six-hour rainfall.
+
+The new complete ledger has 149,568 HRU days and maximum absolute daily residual 0.008281023 mm. Thermal/rainfall choices substantially change runoff; this remains a research prototype. See reports/interface_cases/REPORT.md and reports/canada_awc/REPORT.md. Deep thermal boundary, energy closure, convergence and observations remain open.

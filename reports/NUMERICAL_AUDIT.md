@@ -4,7 +4,7 @@ The coupled kernel is derived from the unmodified USDA-ARS SHAW 3.0.3 source in 
 
 ## Persistent state and diagnostics
 
-All named COMMON blocks, explicit SAVE objects, and the mutable DATA-initialized RAINSL `PSAT` array are saved separately for each HRU. DATA implies persistent storage even without SAVE; `PSATK` is included with `PSAT` to preserve their grouped initializer. A snapshot currently contains 82,800 bytes across 34 blocks. The adapter checks its REAL64/INTEGER32 storage contract at initialization; the compiler is instructed to leave COMMON blocks unpadded. Calls remain serial.
+All named COMMON blocks, explicit SAVE objects, and the mutable DATA-initialized RAINSL `PSAT` array are saved separately for each HRU. DATA implies persistent storage even without SAVE; `PSATK` is included with `PSAT` to preserve their grouped initializer. A snapshot now contains 82,808 bytes across 35 blocks, including the per-HRU radiation-slope override added after the interface review. Older binary dumps used 82,800 bytes and must not be replayed with the new layout. The adapter checks its REAL64/INTEGER32 storage contract at initialization; the compiler is instructed to leave COMMON blocks unpadded. Calls remain serial.
 
 The COMMON parser accepts whitespace inside block delimiters, including the upstream `COMMON / CANLWR/` spelling. Both declarations of `CANLWR` are renamed and its 80 REAL64 values are now captured. The extractor rejects unmatched COMMON declarations instead of silently omitting them. The former 33-block layout missed this block; `LWRBAL` rewrites it before its normal use, but complete state ownership must not depend on that call ordering. Binary diagnostic dumps are compiler/layout specific and must be regenerated when the state layout changes.
 
@@ -74,7 +74,7 @@ The bridge now exports `max(0, daily net horizon water flux)` to legacy `prk`; S
 
 Native plant/weather output uses adjacent fixed-width fields. An overflowing nitrate field can join its preceding number without whitespace and shift all later weather columns in a naive parser. The forcing comparison therefore reads the documented `4i6,2i8,2x,a16,25f12.3` layout. The report additionally requires finite values in all 25 numeric plant/weather fields and nonnegative bottom nitrate export for each coupled HRU in the complete evaluation period. Failed or manually stopped basin outputs are withheld from comparison.
 
-The preserved HRU 1 run had overflowing `percn` on all 850 printed evaluation days. The restricted interface removes those overflows in complete HRUs 1, 6, 19 and 98; their 25 numeric plant/weather fields are finite and bottom nitrate export is nonnegative. Their full 1,216-day water/heat diagnostic CSVs are byte-identical to the preceding version, showing that the water/heat solver itself was not clipped in these four profiles. Source/output hashes and exact trajectory comparisons are recorded in `canada/transport_fix_check.json`. The whole basin still requires its own completed run and checks.
+The preserved HRU 1 run had overflowing `percn` on all 850 printed evaluation days. The restricted interface removes those overflows in complete HRUs 1, 6, 19 and 98; their 25 numeric plant/weather fields are finite and bottom nitrate export is nonnegative. Their full 1,216-day water/heat diagnostic CSVs are byte-identical to the preceding version, showing that the water/heat solver itself was not clipped in these four profiles. Source/output hashes and exact trajectory comparisons are recorded in `canada/transport_fix_check.json`. The completed full-basin rerun also passes these compatibility checks on all 104,550 coupled HRU evaluation records; all 4,864 daily records of the four isolated HRUs match the basin run in 20 diagnostic columns. See [the completed comparison](canada/REPORT.md) for current executable hashes and the full 149,568 HRU-day water ledger.
 
 ## Atmospheric snowfall diagnostic
 
@@ -93,3 +93,7 @@ The canopy initializer and geometry update create, remove, and redistribute atmo
 - Fresh official SWAT+ comparison: the coupling-off Ames outputs match all 42 selected files after the build banner. The repository's historical golden outputs differ even for the pinned official executable; those files have not been overwritten.
 
 These checks establish the tested numerical properties only. Energy-budget closure, temporal and spatial convergence, plant hydraulic calibration, and validation against field observations remain separate research requirements.
+
+## Post-review interfaces
+
+Radiation slope is now independent of hydraulic slope; forcing measurement height is explicit and independent of vegetation updates. New interface tests cover their behavior and invalid inputs. The original-algorithm 720-hour reference still has zero differences across 282,960 values. Post-review basin and sensitivity results are in [the new comparison](interface_cases/REPORT.md); the earlier numerical histories above remain pre-review evidence.

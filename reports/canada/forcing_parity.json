@@ -1,0 +1,38 @@
+{
+  "status": "pass",
+  "evaluation_days": 850,
+  "hrus": 142,
+  "checks": {
+    "hru_pw_day.txt": {
+      "fields": [
+        "tmx",
+        "tmn",
+        "tmpav",
+        "solarad",
+        "wndspd",
+        "rhum"
+      ],
+      "hru_daily_rows": 120700,
+      "different_values": 0,
+      "sha256": {
+        "official": "a27515a93126f13229bf97547db3de71cbe3aabd403cf112a7955e7e63a36c56",
+        "existing_ft": "50bb8bfeda48a9c3236db86219c301081cddb6e9ad6f5a2690ea15ae7e1cc6d4",
+        "shaw": "21a0c40d32b2181ffaf783c811a117557edb42a4a4e20e11a1f7d696c449cdb2"
+      }
+    },
+    "hru_wb_day.txt": {
+      "fields": [
+        "precip"
+      ],
+      "hru_daily_rows": 120700,
+      "different_values": 0,
+      "sha256": {
+        "official": "d1b0bc0d2d61c079f94021116573feebd883f96df9a462866426ac6d796b1c4e",
+        "existing_ft": "344df1c76ca6c224e930de36b4d9cd55772e1023176bfd568db1bf6c92de2915",
+        "shaw": "f9bd14d99e80b72151f40259a9c1e69aac68074b2ab164e6e22fd5416f8f42f6"
+      }
+    }
+  },
+  "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+  "scope": "Exact printed HRU daily weather in the 850-day evaluation period. The 2020 warm-up is not printed; input file hashes cover the full simulation."
+}

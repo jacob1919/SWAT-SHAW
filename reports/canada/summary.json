@@ -1,0 +1,487 @@
+{
+  "status": "complete",
+  "period": "2020-01-01 to 2023-04-30",
+  "simulation_days": 1216,
+  "evaluation_days": 850,
+  "evaluation_period": "2021-01-01 to 2023-04-30",
+  "warmup": "2020",
+  "outlet_channel_ids": [
+    76
+  ],
+  "total_area_ha": 1635.3104,
+  "total_area_km2": 16.353104000000002,
+  "hru_land_area_ha": 1518.18012,
+  "hru_land_area_km2": 15.1818012,
+  "reservoir_polygon_area_ha": 117.13118,
+  "coupled_area_ha": 1483.81125,
+  "coupled_hrus": 123,
+  "scope_groups": {
+    "SHAW coupled": {
+      "hrus": 123,
+      "area_ha": 1483.8112500000009
+    },
+    "urban impervious surface": {
+      "hrus": 19,
+      "area_ha": 34.368869999999994
+    }
+  },
+  "total_hrus": 142,
+  "regression": {
+    "files_identical_after_banner": 95,
+    "data_rows": 484287
+  },
+  "water_budget": {
+    "full_simulation": {
+      "start": "2020-01-01",
+      "end": "2023-04-30",
+      "days": 1216,
+      "hru_days": 149568,
+      "canopy_air_exchange_reported": true,
+      "max_absolute_hru_daily_residual_mm": 0.007808373998,
+      "coupled_area_cumulative_signed_residual_mm": 0.3107345961771981,
+      "coupled_area_sum_absolute_daily_residual_mm": 0.42292256252107513,
+      "coupled_area_cumulative_absolute_hru_residual_mm": 0.4423912285334426,
+      "max_coupled_area_ice_water_mm": 141.67152930579917,
+      "coupled_area_storage_change_mm": 1.1066891031939268,
+      "coupled_area_flux_totals_mm": {
+        "precip_mm": 3702.599997265,
+        "external_soil_mm": 2.375221437853336e-07,
+        "surface_input_mm": 0.0,
+        "et_mm": 2199.2480447512967,
+        "runoff_mm": 239.12373324141998,
+        "percolation_mm": 1263.4723301739816,
+        "lateral_mm": 0.0003240831537958159,
+        "canopy_air_exchange_mm": 0.04038923157568713
+      },
+      "retried_hru_hours": 12642,
+      "total_hru_hours": 3589632,
+      "jacobian_retry_hours": 560,
+      "retried_hru_hours_percent": 0.3521809477963201,
+      "hru_days_requiring_retry": 3685,
+      "max_hour_parts": 8
+    },
+    "warmup": {
+      "start": "2020-01-01",
+      "end": "2020-12-31",
+      "days": 366,
+      "hru_days": 45018,
+      "canopy_air_exchange_reported": true,
+      "max_absolute_hru_daily_residual_mm": 0.007808373998,
+      "coupled_area_cumulative_signed_residual_mm": 0.11380997517054141,
+      "coupled_area_sum_absolute_daily_residual_mm": 0.16357521128680558,
+      "coupled_area_cumulative_absolute_hru_residual_mm": 0.16896600010946858,
+      "max_coupled_area_ice_water_mm": 141.67152930579917,
+      "coupled_area_storage_change_mm": 19.06339768076534,
+      "coupled_area_flux_totals_mm": {
+        "precip_mm": 1087.1999963748,
+        "external_soil_mm": 0.0,
+        "surface_input_mm": 0.0,
+        "et_mm": 648.3969094411716,
+        "runoff_mm": 64.51552379653268,
+        "percolation_mm": 355.36133075468905,
+        "lateral_mm": 9.016737237204741e-05,
+        "canopy_air_exchange_mm": 0.023445456118231157
+      },
+      "retried_hru_hours": 3813,
+      "total_hru_hours": 1080432,
+      "jacobian_retry_hours": 41,
+      "retried_hru_hours_percent": 0.3529143897996357,
+      "hru_days_requiring_retry": 844,
+      "max_hour_parts": 8
+    },
+    "evaluation": {
+      "start": "2021-01-01",
+      "end": "2023-04-30",
+      "days": 850,
+      "hru_days": 104550,
+      "canopy_air_exchange_reported": true,
+      "max_absolute_hru_daily_residual_mm": 0.006540990259,
+      "coupled_area_cumulative_signed_residual_mm": 0.19692462100665672,
+      "coupled_area_sum_absolute_daily_residual_mm": 0.25934735123426955,
+      "coupled_area_cumulative_absolute_hru_residual_mm": 0.273425228423974,
+      "max_coupled_area_ice_water_mm": 97.70823328628909,
+      "coupled_area_storage_change_mm": -17.956708577571415,
+      "coupled_area_flux_totals_mm": {
+        "precip_mm": 2615.4000008902,
+        "external_soil_mm": 2.375221437853336e-07,
+        "surface_input_mm": 0.0,
+        "et_mm": 1550.8511353101253,
+        "runoff_mm": 174.6082094448873,
+        "percolation_mm": 908.1109994192925,
+        "lateral_mm": 0.00023391578142376845,
+        "canopy_air_exchange_mm": 0.01694377545745597
+      },
+      "retried_hru_hours": 8829,
+      "total_hru_hours": 2509200,
+      "jacobian_retry_hours": 519,
+      "retried_hru_hours_percent": 0.3518651362984218,
+      "hru_days_requiring_retry": 2841,
+      "max_hour_parts": 8
+    }
+  },
+  "model_differences": {
+    "existing_ft": {
+      "outlet_daily_rmse_vs_official_m3s": 1.9075733121436844,
+      "outlet_mean_change_percent": -3.8885505110308083
+    },
+    "shaw": {
+      "outlet_daily_rmse_vs_official_m3s": 1.7109623496052044,
+      "outlet_mean_change_percent": -46.93507529967539
+    }
+  },
+  "soil_thermal_response": {
+    "official": {
+      "mean_soil_layer2_C": 4.757709411764706,
+      "min_soil_layer2_C": -15.707,
+      "max_soil_layer2_C": 20.82,
+      "days_basin_mean_layer2_below_zero": 340
+    },
+    "existing_ft": {
+      "mean_soil_layer2_C": 8.131204705882352,
+      "min_soil_layer2_C": -7.15,
+      "max_soil_layer2_C": 24.028,
+      "days_basin_mean_layer2_below_zero": 139
+    },
+    "shaw": {
+      "mean_soil_layer2_C": 7.264651764705882,
+      "min_soil_layer2_C": -2.958,
+      "max_soil_layer2_C": 21.87,
+      "days_basin_mean_layer2_below_zero": 147
+    }
+  },
+  "forcing_parity": {
+    "status": "pass",
+    "evaluation_days": 850,
+    "hrus": 142,
+    "checks": {
+      "hru_pw_day.txt": {
+        "fields": [
+          "tmx",
+          "tmn",
+          "tmpav",
+          "solarad",
+          "wndspd",
+          "rhum"
+        ],
+        "hru_daily_rows": 120700,
+        "different_values": 0,
+        "sha256": {
+          "official": "a27515a93126f13229bf97547db3de71cbe3aabd403cf112a7955e7e63a36c56",
+          "existing_ft": "50bb8bfeda48a9c3236db86219c301081cddb6e9ad6f5a2690ea15ae7e1cc6d4",
+          "shaw": "21a0c40d32b2181ffaf783c811a117557edb42a4a4e20e11a1f7d696c449cdb2"
+        }
+      },
+      "hru_wb_day.txt": {
+        "fields": [
+          "precip"
+        ],
+        "hru_daily_rows": 120700,
+        "different_values": 0,
+        "sha256": {
+          "official": "d1b0bc0d2d61c079f94021116573feebd883f96df9a462866426ac6d796b1c4e",
+          "existing_ft": "344df1c76ca6c224e930de36b4d9cd55772e1023176bfd568db1bf6c92de2915",
+          "shaw": "f9bd14d99e80b72151f40259a9c1e69aac68074b2ab164e6e22fd5416f8f42f6"
+        }
+      }
+    },
+    "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+    "scope": "Exact printed HRU daily weather in the 850-day evaluation period. The 2020 warm-up is not printed; input file hashes cover the full simulation."
+  },
+  "transport_compatibility": {
+    "status": "pass",
+    "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+    "hrus": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      65,
+      66,
+      67,
+      71,
+      72,
+      73,
+      74,
+      76,
+      79,
+      80,
+      81,
+      83,
+      86,
+      87,
+      90,
+      92,
+      93,
+      94,
+      95,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      115,
+      117,
+      118,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      130,
+      132,
+      133,
+      134,
+      135,
+      136,
+      137,
+      138,
+      139,
+      140,
+      141,
+      142
+    ],
+    "evaluation_days": 850,
+    "checks": {
+      "hru_daily_rows": 104550,
+      "finite_numeric_fields_per_row": 25,
+      "negative_bottom_nitrate_exports": 0,
+      "max_bottom_nitrate_export_kg_ha_day": 17.472,
+      "output_sha256": "21a0c40d32b2181ffaf783c811a117557edb42a4a4e20e11a1f7d696c449cdb2"
+    },
+    "scope": "Finite native plant/weather output and nonnegative nitrate export only; not validation of solute physics. SHAW retains signed water internally; legacy SWAT transport receives positive daily net downward water flux, including its vapor contribution. Upward solute transport is not represented."
+  },
+  "routing_checks": {
+    "status": "pass",
+    "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+    "outlet_channel": 76,
+    "direct_upstream_objects": [
+      {
+        "file": "aquifer.con",
+        "id": 5,
+        "name": "aqu50",
+        "hyd_type": "tot",
+        "fraction": 1.0
+      },
+      {
+        "file": "reservoir.con",
+        "id": 1,
+        "name": "res1",
+        "hyd_type": "tot",
+        "fraction": 1.0
+      },
+      {
+        "file": "rout_unit.con",
+        "id": 97,
+        "name": "rtu1050",
+        "hyd_type": "tot",
+        "fraction": 1.0
+      }
+    ],
+    "outlet_drainage_area_ha": 1635.3104,
+    "outlet_drainage_area_km2": 16.353104000000002,
+    "hru_land_area_ha": 1518.18012,
+    "reservoir_polygon_area_ha": 117.13118,
+    "area_rounding_difference_ha": -0.0008999999999161901,
+    "native_land_output_weight_sum": 0.99999888045,
+    "release_rule": "drawdown_days",
+    "principal_storage_m3": 11713117.700000001,
+    "days_above_principal": 15,
+    "days_above_emergency": 5,
+    "const2_storage_multiplier": 0,
+    "principal_threshold_release_scale_m3s": 9.037899459876543,
+    "rule_interpretation": "In pinned res_hydro, days uses b_lo=reference_volume*const2. Here const2=0, so a triggered principal-storage action releases total current volume/15, not merely volume above principal storage. Refilling and triggering can produce pulses near 9 m3/s.",
+    "outlet_high_flow_diagnostic": {
+      "official": {
+        "days_outlet_flow_above_1_m3s": 23,
+        "fraction_of_integrated_outlet_volume_on_those_days": 0.9999522351933556,
+        "minimum_on_those_days_m3s": 9.043,
+        "maximum_m3s": 9.484
+      },
+      "existing_ft": {
+        "days_outlet_flow_above_1_m3s": 22,
+        "fraction_of_integrated_outlet_volume_on_those_days": 0.9999533368708607,
+        "minimum_on_those_days_m3s": 9.038,
+        "maximum_m3s": 9.449
+      },
+      "shaw": {
+        "days_outlet_flow_above_1_m3s": 9,
+        "fraction_of_integrated_outlet_volume_on_those_days": 0.7396428372789065,
+        "minimum_on_those_days_m3s": 9.06,
+        "maximum_m3s": 9.277
+      }
+    },
+    "scope": "Routing configuration and printed outlet diagnostics, not an observed flood attribution. Reservoir daily output was not enabled. HRU water/plant summaries use land fractions; outlet runoff depth uses terminal-channel drainage area.",
+    "input_sha256": {
+      "chandeg.con": "0ec15f671863ef2f6a42b822e63501f231431d7b5859e7ccfe7037332b9705d3",
+      "reservoir.con": "d49a85f4ce2461384613d3a2d1520203a52b6339bc5d4ea3e9d353ebe6eb5343",
+      "reservoir.res": "306247bd700080f423a5d1cef859b038dfcde22d6c853cd083bdd868ed5b82e8",
+      "hydrology.res": "4f389ec850e622ec8cf62b42520b549ac6168eaa43fdd37b36c925c55a1c29c6",
+      "res_rel.dtl": "3ffee18cddc5e0330c035ec60e8fdf68490ce555e73cd91d13de136524528cbb",
+      "ls_unit.ele": "2955476723e8d11df1edbad6d290fc4814db3e7eead26e9dcdb40d6a708f6e1a"
+    }
+  },
+  "excluded_zero_area_scope_rows": 1,
+  "units": {
+    "outlet_flow": "m3/s; sum of terminal channel daily mean flows",
+    "total_area_km2": "terminal-channel registered drainage area, including the independent reservoir polygon; denominator for outlet runoff depth",
+    "hru_land_area_km2": "land HRU area; native basin water/plant outputs use land fractions, excluding the independent reservoir surface",
+    "annual_depths": "land HRU area mean mm accumulated over the reported dates; 2023 is partial",
+    "daily_flux_depths": "mm per day; land HRU area means",
+    "daily_storage_depths": "mm; land HRU area means",
+    "soil_layer2_C": "land HRU area mean of SWAT soil(j)%phys(2)%tmp; not surface temperature or a uniform physical depth across HRUs",
+    "shaw_coupled_soil_ice_mm": "liquid-water equivalent of soil ice over the 123 coupled HRUs only; excludes snow",
+    "water_budget": "mm liquid-water equivalent over the positive-area coupled domain only",
+    "canopy_air_exchange_mm": "signed atmospheric water input caused by changes to canopy-air control volume",
+    "retry_hours": "count of HRU hours requiring subdivision or the additional conductance Jacobian; not elapsed wall-clock hours",
+    "jacobian_retry_hours": "count of accepted HRU hours using the additional conductance Jacobian after complete rollback",
+    "max_hour_parts": "largest accepted subdivision count for one HRU hour"
+  },
+  "interpretation": "Uncalibrated model differences, not observational skill scores; no discharge observations supplied.",
+  "runs": {
+    "official": {
+      "mode": "official",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\swatplus_addFT\\validation_baselines\\swatplus_61c940f_clean\\build_clean\\swatplus-61.0.2.11-83-g61c940f-ifx-win_amd64-Rel.exe",
+      "sha256": "f290f5334dc0889d951859754a0a7f4df9c15193016424207ee48890ff4bdb1a",
+      "started_utc": "2026-09-06T03:13:41.860770+00:00",
+      "input_files": 79,
+      "exit_code": 0,
+      "seconds": 3.7969999999913853,
+      "completed_utc": "2026-09-06T03:13:45.664023+00:00"
+    },
+    "existing_ft": {
+      "mode": "existing_ft",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\swatplus_addFT\\build\\debug\\swatplus-61.0.2.11-83-g61c940f-ifx-win_amd64-Dbg.exe",
+      "sha256": "9d0c219b38af71e2e8c209a000cdd6c405f12861d8d7541a936d45e13b1c2afa",
+      "started_utc": "2026-09-06T03:13:42.283022+00:00",
+      "input_files": 79,
+      "exit_code": 0,
+      "seconds": 28.421999999991385,
+      "completed_utc": "2026-09-06T03:14:10.703628+00:00"
+    },
+    "shaw": {
+      "mode": "shaw",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\build\\coupled\\swatplus-61.0.2.11-86-gbb179ee-ifx-win_amd64-Rel.exe",
+      "sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+      "started_utc": "2026-09-07T15:46:45.631148+00:00",
+      "input_files": 79,
+      "source_sha256": {
+        "src/shaw/CMakeLists.txt": "5539974c6087f57e2eb3bb52b7e656b42af0d49b362c5287846640ab7f2ffe9c",
+        "src/shaw/shaw_canopy_jacobian.f90": "6250fd515c309d9cddb007fd108895876eb0e9c7fa46f59f23672d6e3c6e985b",
+        "src/shaw/shaw_column_api.f90": "1ddea4a964d31046b4793d2223c709e184b9b0e3c29f6d9918ee80709cdf4473",
+        "src/shaw/shaw_column_types.f90": "33463ad336259c02acd126a491f2d562d38f960291d650970a3794cbe6b4a324",
+        "src/shaw/shaw_common_access.f90": "0bddd90dffe8c371c188da82b90d0cefee957d200eed326dad53bfcf7d1746bf",
+        "src/shaw/shaw_legacy_state.f90": "40a41b3813dd18c1d75a06bac12c46a75d7542a2822b9a60483fe50db32045e7",
+        "src/shaw/shaw_root_partition.f90": "75ac1cfad8e3ac8396e4c601270920d772b5eb292f4b85b82a4a50d41884bbfc",
+        "src/shaw/shaw_water_heat.for": "f473719c85dd1ce2f8aaded50a446b9483e626da9594b0e0d696801e8d13cb70",
+        "src/shaw_swat_module.f90": "2a757d73ee1fdd37a8b414751a5bb236fcb7a9e0df32ca5bfcc54d2360d12a8d",
+        "src/hru_control.f90": "dc0264a985046c366499241211791f2f608d4ad067e53954a00e6548bb58066a",
+        "src/surface.f90": "423d862ff55b2c73a88ff62aad79b3ce2e57b3ebf6be76777a9babc8276fc4e4",
+        "src/pl_waterup.f90": "dee6a101129a0ce677ba8525df1b451cfc003ccd51e103482009a2eae5fc6ea3"
+      },
+      "source_base_commit": "fb75b4697f65ccf604c4e261b2ad018cbfdef578",
+      "exit_code": 0,
+      "seconds": 4926.983999999997,
+      "completed_utc": "2026-09-07T17:08:52.679558+00:00"
+    },
+    "coupling_off": {
+      "mode": "coupling_off",
+      "executable": "C:\\work\\Fortran_program\\repo\\yxltql\\SWAT\\SWAT+SHAW\\build\\coupled\\swatplus-61.0.2.11-86-gbb179ee-ifx-win_amd64-Rel.exe",
+      "sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+      "started_utc": "2026-09-07T15:40:34.389381+00:00",
+      "input_files": 79,
+      "source_sha256": {
+        "src/shaw/CMakeLists.txt": "5539974c6087f57e2eb3bb52b7e656b42af0d49b362c5287846640ab7f2ffe9c",
+        "src/shaw/shaw_canopy_jacobian.f90": "6250fd515c309d9cddb007fd108895876eb0e9c7fa46f59f23672d6e3c6e985b",
+        "src/shaw/shaw_column_api.f90": "1ddea4a964d31046b4793d2223c709e184b9b0e3c29f6d9918ee80709cdf4473",
+        "src/shaw/shaw_column_types.f90": "33463ad336259c02acd126a491f2d562d38f960291d650970a3794cbe6b4a324",
+        "src/shaw/shaw_common_access.f90": "0bddd90dffe8c371c188da82b90d0cefee957d200eed326dad53bfcf7d1746bf",
+        "src/shaw/shaw_legacy_state.f90": "40a41b3813dd18c1d75a06bac12c46a75d7542a2822b9a60483fe50db32045e7",
+        "src/shaw/shaw_root_partition.f90": "75ac1cfad8e3ac8396e4c601270920d772b5eb292f4b85b82a4a50d41884bbfc",
+        "src/shaw/shaw_water_heat.for": "f473719c85dd1ce2f8aaded50a446b9483e626da9594b0e0d696801e8d13cb70",
+        "src/shaw_swat_module.f90": "2a757d73ee1fdd37a8b414751a5bb236fcb7a9e0df32ca5bfcc54d2360d12a8d",
+        "src/hru_control.f90": "dc0264a985046c366499241211791f2f608d4ad067e53954a00e6548bb58066a",
+        "src/surface.f90": "423d862ff55b2c73a88ff62aad79b3ce2e57b3ebf6be76777a9babc8276fc4e4",
+        "src/pl_waterup.f90": "dee6a101129a0ce677ba8525df1b451cfc003ccd51e103482009a2eae5fc6ea3"
+      },
+      "source_base_commit": "fb75b4697f65ccf604c4e261b2ad018cbfdef578",
+      "exit_code": 0,
+      "seconds": 3.922000000020489,
+      "completed_utc": "2026-09-07T15:40:38.356948+00:00"
+    }
+  }
+}

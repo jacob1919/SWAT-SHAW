@@ -2,6 +2,8 @@
 
 This branch integrates USDA-ARS SHAW 3.0.3 canopy, snow and soil water/heat physics into SWAT+ HRUs. It excludes SHAW solute and CO₂ transport. See [method and build notes](SWAT_SHAW.md), [numerical audit](reports/NUMERICAL_AUDIT.md), and [development status](DEVELOPMENT.md). This is an uncalibrated research prototype; model differences alone do not establish improved accuracy.
 
+The [historical Canadian comparison](reports/canada/REPORT.md) covers official SWAT+, the existing freeze-thaw version and SWAT+SHAW: 1,216 simulated days, 850 evaluation days, daily/seasonal/annual results and process figures. It documents land/outlet area conventions, reservoir regulation, water-budget checks and observational limitations.
+
 The original upstream README follows.
 
 [![Release](https://img.shields.io/github/release/swat-model/swatplus.svg?style=flat-square)](https://github.com/swat-model/swatplus/releases)
@@ -92,3 +94,5 @@ __The following sections are emphasizing various development aspects.__
 [SWAT at TAMU](https://swat.tamu.edu)
 
 [Older SWAT+ versions on Bitbucket](https://bitbucket.org/blacklandgrasslandmodels/modular_swatplus/src/master)
+
+The [post-review comparison](reports/interface_cases/REPORT.md) reruns all three models with provenance-verified AWC units and corrected SHAW terrain/forcing interfaces. It includes separate radiation, forcing-height, AWC, thermal-boundary and rainfall-timing experiments. See the [AWC audit](reports/canada_awc/REPORT.md) and [interface policy](reports/INTERFACE_REVIEW.md).

@@ -48,12 +48,14 @@ def validate(summary, status, annual, daily, run_root=None):
             raise ValueError(f'Report withheld: {mode} has been rerun since the comparison was generated')
     if runs['shaw']['sha256'] != runs['coupling_off']['sha256']:
         raise ValueError('Report withheld: coupled and coupling-off executable hashes differ')
-    for name in ('forcing_parity','transport_compatibility'):
+    for name in ('forcing_parity','transport_compatibility','routing_checks'):
         check=summary[name]
         if check.get('status')!='pass' or check.get('coupled_executable_sha256')!=runs['shaw']['sha256']:
             raise ValueError(f'Report withheld: stale or unsuccessful {name}')
-    if not math.isclose(number(summary['total_area_km2']), 15.1818012, abs_tol=1e-7):
-        raise ValueError('Unexpected basin area; this report describes the supplied Canadian case')
+    if not math.isclose(number(summary['total_area_km2']), 16.353104, abs_tol=1e-7):
+        raise ValueError('Unexpected outlet drainage area; this report describes the supplied Canadian case')
+    if not math.isclose(number(summary['hru_land_area_km2']), 15.1818012, abs_tol=1e-7):
+        raise ValueError('Unexpected land HRU area')
     if summary['total_hrus'] != 142 or summary['coupled_hrus'] != 123:
         raise ValueError('Unexpected HRU scope; review report assumptions before continuing')
     start = dt.date(2021, 1, 1)
@@ -87,19 +89,22 @@ def validate(summary, status, annual, daily, run_root=None):
 def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, guard=None):
     area = number(summary['total_area_km2'])
     coupled_area = number(summary['coupled_area_ha'])
-    fraction = 100 * coupled_area / number(summary['total_area_ha'])
-    scope = (f"流域面积 **{area:.7f} km²**（{fmt(summary['total_area_ha'], 5)} ha），"
+    fraction = 100 * coupled_area / number(summary['hru_land_area_ha'])
+    routing=summary['routing_checks']
+    scope = (f"出口登记汇水面积 **{area:.6f} km²**（{fmt(summary['total_area_ha'], 5)} ha）。"
+             f"其中陆地 HRU 面积 **{summary['hru_land_area_km2']:.7f} km²**，独立水库多边形面积 "
+             f"{fmt(summary['reservoir_polygon_area_ha'],5)} ha；两者之和与出口登记面积相差约 9 m²，属于输入取整差异。"
              f"共有 **{summary['total_hrus']} 个有效 HRU**，其中 **{summary['coupled_hrus']} 个**使用 SHAW，"
-             f"面积 {fmt(coupled_area, 5)} ha，占 {fraction:.2f}%。"
+             f"面积 {fmt(coupled_area, 5)} ha，占陆地 HRU 面积的 {fraction:.2f}%。"
              f"其余 {summary['total_hrus'] - summary['coupled_hrus']} 个 HRU 保留原始过程；零面积占位对象不计入统计。"
              f"流量统计使用终端河道 {', '.join(str(x) for x in summary['outlet_channel_ids'])}。")
     annual_rows = []
     reasons={'SHAW coupled':'SHAW 耦合','urban impervious surface':'城市 HRU，保留原始过程',
              'surface water body':'地表水体，保留原始过程','tile drainage':'暗管排水，保留原始过程',
              'septic system':'化粪系统，保留原始过程'}
-    scope_table=table(['过程配置','HRU 数','面积（ha）','流域面积占比'],
+    scope_table=table(['过程配置','HRU 数','面积（ha）','陆地 HRU 面积占比'],
         [[reasons.get(reason,reason),group['hrus'],fmt(group['area_ha'],5),
-          fmt(100*group['area_ha']/number(summary['total_area_ha']),2)+'%']
+          fmt(100*group['area_ha']/number(summary['hru_land_area_ha']),2)+'%']
          for reason,group in summary['scope_groups'].items()])
     for year in (2021, 2022, 2023):
         for mode in MODES:
@@ -124,6 +129,10 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
             '基准' if mode == 'official' else fmt(rmse, 6)])
     evaluation_table = table(['模型', '评价期平均 Q（m³/s）', '出口累计径流深（mm）',
                                '平均 Q 相对原始版变化', '日 Q 与原始版的 RMSE（m³/s）'], comparison)
+    pulse_table=table(['模型','Q > 1 m³/s 的天数','这些天占累计出口水量'],
+        [[LABELS[mode],routing['outlet_high_flow_diagnostic'][mode]['days_outlet_flow_above_1_m3s'],
+          fmt(100*routing['outlet_high_flow_diagnostic'][mode]['fraction_of_integrated_outlet_volume_on_those_days'],3)+'%']
+         for mode in MODES])
     flux_findings=[]
     for field,label in (('et','净蒸散'),('surq_gen','地表产流'),('perc','底部渗漏')):
         original=sum(number(r['official_'+field+'_mm']) for r in daily)
@@ -211,7 +220,7 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
 
 逐 HRU 面积、过程配置和选择原因见 [耦合范围 CSV](hru_scope.csv)。若一个 HRU 同时符合多项保留原始过程的条件，表中记录程序最后匹配的原因，每个 HRU 只计一次。
 
-本次重新核对了此前报告的基础口径：旧报告把面积的 ha 数值标为 km²，并将该起止日期的模拟天数写为 1,456；本报告采用输入面积换算后的 15.1818012 km² 和按日历计算的 1,216 天。旧报告文件保留原样。
+本次重新核对了此前报告的基础口径：旧报告把 HRU 面积的 ha 数值标为 km²，并将该起止日期的模拟天数写为 1,456；本报告区分陆地 HRU 面积与含独立水库的出口汇水面积，按日历计算为 1,216 天。旧报告文件保留原样。原生 `basin_wb` / `basin_pw` 在 `basin_output.f90` 中按陆地 HRU 的 `bsn_frac` 加权，其权重之和为 {routing['native_land_output_weight_sum']:.11f}；这些深度和温度不包含独立水库表面的平均贡献。
 
 2020 年的 366 天作为预热，评价期为 **2021-01-01 至 2023-04-30，共 850 天**。2023 年仅含 1–4 月的 120 天，年度累计量不能与完整年度直接比较。该案例代表加拿大季节性冻土环境，不应据此外推多年冻土区。
 
@@ -227,11 +236,17 @@ def render_report(summary, annual, daily, kernel, ames, hashes, parity=None, gua
 
 {evaluation_table}
 
-出口累计径流深由日平均流量积分并除以整个流域面积得到；它包含流域汇流后的贡献，不等于 HRU 地表产流。表中的 RMSE 衡量两个模拟序列的差异，不是相对实测的误差，也不是模型优劣排名。
+出口累计径流深由日平均流量积分并除以 **{area:.6f} km² 的出口登记汇水面积**得到；它包含汇流及水库调度后的贡献，不等于 HRU 地表产流。表中的 RMSE 衡量两个模拟序列的差异，不是相对实测的误差，也不是模型优劣排名。
 
 {table(['模型', '评价期最大日平均 Q（m³/s）', '发生日期'], peaks)}
 
-SHAW 耦合版相对原始版的水量分配变化：
+出口 76 直接接收水库 1、地下水对象 5 和汇流单元 97 的来水。水库使用原案例的 `drawdown_days` 规则：高于正常蓄水阈值时按 15 天放水，高于应急阈值时按 5 天放水。当前输入的 `const2=0`，而固定版本的 `res_hydro.f90` 采用 `b_lo=参考库容×const2`，触发正常阈值规则后的放水量因而是当前总库容的 1/15，并非仅释放超出阈值的部分。正常阈值库容为 {fmt(routing['principal_storage_m3'],1)} m³，对应约 **{fmt(routing['principal_threshold_release_scale_m3s'],3)} m³/s** 的放水尺度；蓄水、触发、回落的循环与图中约 9 m³/s 的脉冲相符。
+
+{pulse_table}
+
+以上为输入规则和模拟出口的诊断；本次未启用水库逐日输出，不能视为逐日放水实测归因。三个版本保持相同水库输入，出口峰值时序及 RMSE 对阈值触发日期敏感，不能直接解释为自然融雪洪峰或冻融算法优劣。配置、面积与高流量日统计见 [汇流核查](routing_checks.json)。
+
+SHAW 耦合版相对原始版的陆地 HRU 平均水量分配变化：
 
 {process_findings}
 
@@ -241,17 +256,17 @@ SHAW 耦合版相对原始版的水量分配变化：
 
 {annual_table}
 
-ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累计深度；SWE 为该时段最大流域平均积雪水当量。最大日平均 Q 不等于瞬时洪峰。完整降水、降雪和融雪等统计见 [年度 CSV](annual_comparison.csv)，逐日序列见 [逐日 CSV](daily_comparison.csv)。
+ET、地表产流、底部渗漏和侧向流为陆地 HRU 面积加权的时段累计深度；SWE 为该时段最大陆地 HRU 平均积雪水当量。这里的面积口径与出口径流深不同。最大日平均 Q 不等于瞬时洪峰。完整降水、降雪和融雪等统计见 [年度 CSV](annual_comparison.csv)，逐日序列见 [逐日 CSV](daily_comparison.csv)。
 
-![出口流量、积雪、蒸散与渗漏过程](process_comparison.png)
+![出口流量、地表产流、积雪、蒸散与渗漏过程](process_comparison.png)
 
 [科学绘图 PDF](process_comparison.pdf)
 
 ## 冬春过程与季节统计
 
-下图放大各年 1—5 月的出口流量和积雪过程；2023 年仅到 4 月底，5 月留空。各列采用相同纵轴，便于比较幅度。季节累计与峰值见 [季节 CSV](seasonal_comparison.csv)：采用气象季节 DJF/MAM/JJA/SON，12 月归入下一冬季年份；2021 冬季缺少预热期的 2020 年 12 月，2023 春季缺少 5 月，均标为不完整季节。
+下图放大各年 1—5 月的出口流量、地表产流和积雪过程；2023 年仅到 4 月底，5 月留空。各列采用相同纵轴，便于比较幅度。季节累计与峰值见 [季节 CSV](seasonal_comparison.csv)：采用气象季节 DJF/MAM/JJA/SON，12 月归入下一冬季年份；2021 冬季缺少预热期的 2020 年 12 月，2023 春季缺少 5 月，均标为不完整季节。
 
-![冬春出口流量与积雪](winter_spring_comparison.png)
+![冬春出口流量、地表产流与积雪](winter_spring_comparison.png)
 
 [冬春绘图 PDF](winter_spring_comparison.pdf)
 
@@ -259,7 +274,7 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 {thermal_table}
 
-土温来自三个版本共同输出的 `basin_pw_day.txt: sol_tmp`，源代码均取 `soil(j)%phys(2)%tmp` 后按流域面积汇总，即 **SWAT+ 第二土层温度**，不是地表温度，也不代表全流域统一物理深度。温度低于零的天数按日输出精度判定，指面平均序列过零，不能解释为所有 HRU 的冻结持续天数或冻土面积比例。
+土温来自三个版本共同输出的 `basin_pw_day.txt: sol_tmp`，源代码均取 `soil(j)%phys(2)%tmp` 后按陆地 HRU 面积汇总，即 **SWAT+ 第二土层温度**，不是地表温度，也不代表全流域统一物理深度。温度低于零的天数按日输出精度判定，指面平均序列过零，不能解释为所有 HRU 的冻结持续天数或冻土面积比例。
 
 ![第二土层温度与 SHAW 土壤冰储量](thermal_comparison.png)
 
@@ -299,7 +314,7 @@ ET、地表产流、底部渗漏和侧向流为全流域面积平均的时段累
 
 耗时是本机此次运行记录，未控制重复次数与系统负载，不能作为稳定性能基准。原始输入和完整运行输出保留在本机，未随代码上传。
 
-报告数据源哈希：
+报告数据源 SHA256（下列文本统一将 CRLF 换行为 LF 后计算，便于核对 GitHub 存档；各运行记录内部的输入、输出及可执行文件哈希仍对应本机原始字节）：
 
 {hash_lines}
 
@@ -342,11 +357,11 @@ def main():
     if guard and (guard.get('status')!='pass' or guard.get('kernel_source_sha256')!=summary['runs']['shaw']['source_sha256']['src/shaw/shaw_water_heat.for']):
         raise ValueError('Report withheld: minimum-step check is stale or unsuccessful')
     names = ['summary.json', 'analysis_status.json', 'annual_comparison.csv', 'daily_comparison.csv','seasonal_comparison.csv','hru_scope.csv',
-             'forcing_parity.json','transport_compatibility.json']
+             'forcing_parity.json','transport_compatibility.json','routing_checks.json']
     names += [p.name for p in (kernel_path, ames_path) if p.exists()]
     if parity:names.append(parity_path.name)
     if guard:names.append(guard_path.name)
-    hashes = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in names}
+    hashes = {name: hashlib.sha256((directory / name).read_bytes().replace(b'\r\n',b'\n')).hexdigest() for name in names}
     report = render_report(summary, annual, daily, kernel, ames, hashes, parity, guard)
     output = directory / 'REPORT.md'
     output.write_text(report, encoding='utf-8')

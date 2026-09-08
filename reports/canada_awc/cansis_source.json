@@ -1,0 +1,76 @@
+{
+  "soil_id": "QCBLF33000A",
+  "name": "BLANDFORD",
+  "retrieved_utc": "2026-09-08T10:26:22.287Z",
+  "record_url": "https://sis.agr.gc.ca/cansis/soils/qc/BLF/33000/A/description.html",
+  "unit_urls": {
+    "kp33": "https://sis.agr.gc.ca/cansis/nsdb/soil/v2/slt/kp33.html",
+    "kp1500": "https://sis.agr.gc.ca/cansis/nsdb/soil/v2/slt/kp1500.html",
+    "ksat": "https://sis.agr.gc.ca/cansis/nsdb/soil/v2/slt/ksat.html"
+  },
+  "limitations_url": "https://sis.agr.gc.ca/cansis/nsdb/soil/v2/slt/index.html",
+  "columns": [
+    "lower_depth_cm",
+    "bulk_density_g_cm3",
+    "ksat_cm_h",
+    "organic_carbon_percent",
+    "clay_percent",
+    "silt_percent",
+    "sand_percent",
+    "coarse_fragments_percent",
+    "kp33_volume_percent",
+    "kp1500_volume_percent"
+  ],
+  "layers": [
+    [
+      18,
+      1.3,
+      3.25,
+      4.8,
+      14,
+      46,
+      40,
+      20,
+      24,
+      9
+    ],
+    [
+      24,
+      1.35,
+      3.25,
+      2.9,
+      14,
+      46,
+      40,
+      20,
+      23,
+      9
+    ],
+    [
+      30,
+      1.35,
+      3.25,
+      1.6,
+      11,
+      43,
+      46,
+      20,
+      22,
+      8
+    ],
+    [
+      100,
+      1.8,
+      0.25,
+      0.4,
+      12,
+      48,
+      40,
+      20,
+      19,
+      11
+    ]
+  ],
+  "interpretation": "Exact profile ID and all eight compared non-AWC attributes match after documented depth/conductivity unit conversions. Raw AWC equals KP33 minus KP1500 in percentage points in every layer. This establishes a strongly evidenced missing percent-to-fraction conversion, but does not recover the original author export script.",
+  "limitation": "SLT values are modal attributes, mostly estimated; they are not a measured local pedon or a field validation dataset."
+}

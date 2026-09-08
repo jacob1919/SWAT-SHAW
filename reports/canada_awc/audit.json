@@ -1,0 +1,124 @@
+{
+  "soil_id": "QCBLF33000A",
+  "source_file": "cansis_source.json",
+  "original_soil_sha256": "cdad1d53bde3eca61b8c3b215b7dac88eacf4b406f415df9b765a67bc054ea75",
+  "corrected_soil_sha256": "a2b1190eb70e5ec3be2ac83d524bf717ed7bd1cd57c533e40d7d7240794c0136",
+  "conclusion": "Four exact layer matches support conversion of AWC percent to fraction.",
+  "limitation": "Export code not recovered; modal soil attributes are not local field measurements.",
+  "layers": [
+    {
+      "layer": 1,
+      "depth_bottom_mm": 180.0,
+      "thickness_mm": 180.0,
+      "non_awc_attributes_matched": 8,
+      "kp33_percent": 24,
+      "kp1500_percent": 9,
+      "raw_awc": 15.0,
+      "corrected_awc": 0.15,
+      "raw_initialized": {
+        "porosity": 0.5094339622641508,
+        "field_capacity": 0.3820754716981131,
+        "wilting_point": 0.1273584905660377,
+        "effective_awc": 0.2547169811320754,
+        "fallback": true,
+        "campbell_b": 3.475745708294083,
+        "air_entry_m": -1.2361865094905715
+      },
+      "corrected_initialized": {
+        "porosity": 0.5094339622641508,
+        "field_capacity": 0.2228,
+        "wilting_point": 0.07280000000000002,
+        "effective_awc": 0.14999999999999997,
+        "fallback": false,
+        "campbell_b": 3.4137658128726676,
+        "air_entry_m": -0.1996217073279628
+      }
+    },
+    {
+      "layer": 2,
+      "depth_bottom_mm": 240.0,
+      "thickness_mm": 60.0,
+      "non_awc_attributes_matched": 8,
+      "kp33_percent": 23,
+      "kp1500_percent": 9,
+      "raw_awc": 14.0,
+      "corrected_awc": 0.14,
+      "raw_initialized": {
+        "porosity": 0.49056603773584906,
+        "field_capacity": 0.3679245283018868,
+        "wilting_point": 0.12264150943396226,
+        "effective_awc": 0.24528301886792456,
+        "fallback": true,
+        "campbell_b": 3.475745708294083,
+        "air_entry_m": -1.2361865094905722
+      },
+      "corrected_initialized": {
+        "porosity": 0.49056603773584906,
+        "field_capacity": 0.2156,
+        "wilting_point": 0.07560000000000001,
+        "effective_awc": 0.14,
+        "fallback": false,
+        "campbell_b": 3.6437132832888457,
+        "air_entry_m": -0.16801811451501503
+      }
+    },
+    {
+      "layer": 3,
+      "depth_bottom_mm": 300.0,
+      "thickness_mm": 60.0,
+      "non_awc_attributes_matched": 8,
+      "kp33_percent": 22,
+      "kp1500_percent": 8,
+      "raw_awc": 14.0,
+      "corrected_awc": 0.14,
+      "raw_initialized": {
+        "porosity": 0.49056603773584906,
+        "field_capacity": 0.3679245283018868,
+        "wilting_point": 0.12264150943396226,
+        "effective_awc": 0.24528301886792456,
+        "fallback": true,
+        "campbell_b": 3.475745708294083,
+        "air_entry_m": -1.2361865094905722
+      },
+      "corrected_initialized": {
+        "porosity": 0.49056603773584906,
+        "field_capacity": 0.19940000000000002,
+        "wilting_point": 0.059400000000000015,
+        "effective_awc": 0.14,
+        "fallback": false,
+        "campbell_b": 3.1531281593598686,
+        "air_entry_m": -0.19658638284706528
+      }
+    },
+    {
+      "layer": 4,
+      "depth_bottom_mm": 1000.0,
+      "thickness_mm": 700.0,
+      "non_awc_attributes_matched": 8,
+      "kp33_percent": 19,
+      "kp1500_percent": 11,
+      "raw_awc": 8.0,
+      "corrected_awc": 0.08,
+      "raw_initialized": {
+        "porosity": 0.320754716981132,
+        "field_capacity": 0.240566037735849,
+        "wilting_point": 0.080188679245283,
+        "effective_awc": 0.160377358490566,
+        "fallback": true,
+        "campbell_b": 3.475745708294083,
+        "air_entry_m": -1.2361865094905715
+      },
+      "corrected_initialized": {
+        "porosity": 0.320754716981132,
+        "field_capacity": 0.16640000000000002,
+        "wilting_point": 0.08640000000000002,
+        "effective_awc": 0.08,
+        "fallback": false,
+        "campbell_b": 5.826147426446289,
+        "air_entry_m": -0.07341288847614824
+      }
+    }
+  ],
+  "raw_available_capacity_mm": 187.5471698113207,
+  "corrected_available_capacity_mm": 99.8
+}

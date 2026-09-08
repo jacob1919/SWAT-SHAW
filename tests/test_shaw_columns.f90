@@ -15,11 +15,13 @@ program test_shaw_columns
   call shaw_set_soil_parameters(a,density,k,zero,sand,silt,clay,zero,zero,ae,sat,exponent)
   a%clouds=.5
   call shaw_set_vegetation(a,2.,.8,.3,.6)
+  call shaw_set_forcing_height(a,a%plthgt(1)+2.)
   temp=-2.;water=.35
   call shaw_initialize(b,10,z(1:10),temp(1:10),water(1:10),45.25,180.)
   call shaw_set_soil_parameters(b,density,k*2.,zero,sand,silt,clay,zero,zero,ae,sat,exponent)
   b%clouds=.7
   call shaw_set_vegetation(b,4.,5.,2.,.8)
+  call shaw_set_forcing_height(b,b%plthgt(1)+2.)
   call shaw_set_solver_tolerance(a,1.e-4,1.e-3)
   call shaw_set_solver_tolerance(b,1.e-4,1.e-3)
   call shaw_correct_canopy_jacobian(a,.true.)

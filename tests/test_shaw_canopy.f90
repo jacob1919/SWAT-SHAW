@@ -19,6 +19,7 @@ program test_shaw_canopy
   call shaw_initialize(c,21,z,temperature,water,45.25,106.)
   call shaw_set_soil_parameters(c,density,k,zero,sand,silt,clay,zero,zero,air_entry,saturation,exponent)
   call shaw_set_vegetation(c,0.,.8,.1,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
   call shaw_set_solver_tolerance(c,1.e-4,1.e-3)
   call shaw_correct_canopy_jacobian(c,.true.)
   c%clouds=.5
@@ -33,10 +34,13 @@ program test_shaw_canopy
     case(25)
       ! Native CANLAY uses approximately LAI / 0.5 nodes; LAI 0.5 gives NC=1.
       call shaw_set_vegetation(c,.5,.8,.1,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
     case(49)
       call shaw_set_vegetation(c,4.,.8,.3,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
     case(73)
       call shaw_set_vegetation(c,4.,1.6,.5,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
     case(120)
       ! Rain in the previous hour supplies real intercepted water for harvest.
       intercepted=sum(c%pcandt)
@@ -44,6 +48,7 @@ program test_shaw_canopy
       if(intercepted<=1.e-8) error stop 'Canopy fixture did not retain water before leaf removal'
       structural_before=shaw_storage(c)
       call shaw_set_vegetation(c,0.,1.6,.5,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
       if(any(c%pcandt/=0.)) error stop 'Leaf removal did not clear interception'
       if(abs(c%pond-old_pond-intercepted)>1.e-12) error stop 'Leaf removal lost intercepted water'
       if(abs(shaw_storage(c)-structural_before)>1.e-12_real64) &
@@ -51,8 +56,10 @@ program test_shaw_canopy
       checked_leaf_removal=.true.
     case(121)
       call shaw_set_vegetation(c,.5,.8,.1,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
     case(145)
       call shaw_set_vegetation(c,4.,1.6,.5,.6)
+  call shaw_set_forcing_height(c,c%plthgt(1)+2.)
     end select
 
     h=mod(t-1,24)+1

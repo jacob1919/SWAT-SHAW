@@ -1,0 +1,23 @@
+{
+  "status": "pass",
+  "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+  "days_per_hru": 1216,
+  "hrus": [
+    1,
+    6,
+    19,
+    98
+  ],
+  "daily_rows_compared": 4864,
+  "columns_per_row": 20,
+  "different_values": 0,
+  "comparison": "Exact printed daily states, fluxes and retry counters",
+  "basin_daily_csv_sha256": "3fe89ecc3a5373b12a85d19b2689bd3871701a3f770f01195e99e475e5b48e42",
+  "isolated_daily_csv_sha256": {
+    "1": "d79500d8fbe874c096fc02ef823ec36a9c7c0a96ae5240f361e46350fb31c0fc",
+    "6": "31025c72bb8fbcdbf6697906bb579d3a3c1df73b1bbe20cd8463d36867bcb4bc",
+    "19": "1d736869ec67945a403fcc90532be52e84719e4d35fd07a630baab178c1d6930",
+    "98": "a134c54e7dc1e03bbf10b0cd5c0fbb67ad2cd1e07c31b24c822a8ec4423aff8b"
+  },
+  "scope": "These HRUs have no upstream HRU surface-water or aquifer inflow in this Canadian case; exact parity is expected."
+}

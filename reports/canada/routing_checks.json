@@ -1,0 +1,70 @@
+{
+  "status": "pass",
+  "coupled_executable_sha256": "64a9a05974e0bfe950779d70217b996a1fd41101b8f62131a8e71a9532a8fb56",
+  "outlet_channel": 76,
+  "direct_upstream_objects": [
+    {
+      "file": "aquifer.con",
+      "id": 5,
+      "name": "aqu50",
+      "hyd_type": "tot",
+      "fraction": 1.0
+    },
+    {
+      "file": "reservoir.con",
+      "id": 1,
+      "name": "res1",
+      "hyd_type": "tot",
+      "fraction": 1.0
+    },
+    {
+      "file": "rout_unit.con",
+      "id": 97,
+      "name": "rtu1050",
+      "hyd_type": "tot",
+      "fraction": 1.0
+    }
+  ],
+  "outlet_drainage_area_ha": 1635.3104,
+  "outlet_drainage_area_km2": 16.353104000000002,
+  "hru_land_area_ha": 1518.18012,
+  "reservoir_polygon_area_ha": 117.13118,
+  "area_rounding_difference_ha": -0.0008999999999161901,
+  "native_land_output_weight_sum": 0.99999888045,
+  "release_rule": "drawdown_days",
+  "principal_storage_m3": 11713117.700000001,
+  "days_above_principal": 15,
+  "days_above_emergency": 5,
+  "const2_storage_multiplier": 0,
+  "principal_threshold_release_scale_m3s": 9.037899459876543,
+  "rule_interpretation": "In pinned res_hydro, days uses b_lo=reference_volume*const2. Here const2=0, so a triggered principal-storage action releases total current volume/15, not merely volume above principal storage. Refilling and triggering can produce pulses near 9 m3/s.",
+  "outlet_high_flow_diagnostic": {
+    "official": {
+      "days_outlet_flow_above_1_m3s": 23,
+      "fraction_of_integrated_outlet_volume_on_those_days": 0.9999522351933556,
+      "minimum_on_those_days_m3s": 9.043,
+      "maximum_m3s": 9.484
+    },
+    "existing_ft": {
+      "days_outlet_flow_above_1_m3s": 22,
+      "fraction_of_integrated_outlet_volume_on_those_days": 0.9999533368708607,
+      "minimum_on_those_days_m3s": 9.038,
+      "maximum_m3s": 9.449
+    },
+    "shaw": {
+      "days_outlet_flow_above_1_m3s": 9,
+      "fraction_of_integrated_outlet_volume_on_those_days": 0.7396428372789065,
+      "minimum_on_those_days_m3s": 9.06,
+      "maximum_m3s": 9.277
+    }
+  },
+  "scope": "Routing configuration and printed outlet diagnostics, not an observed flood attribution. Reservoir daily output was not enabled. HRU water/plant summaries use land fractions; outlet runoff depth uses terminal-channel drainage area.",
+  "input_sha256": {
+    "chandeg.con": "0ec15f671863ef2f6a42b822e63501f231431d7b5859e7ccfe7037332b9705d3",
+    "reservoir.con": "d49a85f4ce2461384613d3a2d1520203a52b6339bc5d4ea3e9d353ebe6eb5343",
+    "reservoir.res": "306247bd700080f423a5d1cef859b038dfcde22d6c853cd083bdd868ed5b82e8",
+    "hydrology.res": "4f389ec850e622ec8cf62b42520b549ac6168eaa43fdd37b36c925c55a1c29c6",
+    "res_rel.dtl": "3ffee18cddc5e0330c035ec60e8fdf68490ce555e73cd91d13de136524528cbb",
+    "ls_unit.ele": "2955476723e8d11df1edbad6d290fc4814db3e7eead26e9dcdb40d6a708f6e1a"
+  }
+}

@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from check_canada_forcing import check_forcing
 from check_canada_transport import check_transport
+from check_canada_routing import check_routing
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'validation/canada'
@@ -219,7 +220,9 @@ def main():
                          '\nAny existing comparison artifacts describe an earlier run; inspect analysis_status.json.')
     forcing=check_forcing()
     transport=check_transport()
+    routing=check_routing()
     outlets=outlet_ids()
+    assert outlets==[routing['outlet_channel']]
     wb={m:read_output(DATA/m/'basin_wb_day.txt') for m in MODES}
     pw={m:read_output(DATA/m/'basin_pw_day.txt') for m in MODES}
     flow={m:defaultdict(float) for m in MODES}
@@ -249,6 +252,7 @@ def main():
     # Validate the complete diagnostic record before publishing comparative metrics.
     scope,excluded=read_scope()
     areas={r['hru']:r['area_ha'] for r in scope}
+    assert math.isclose(sum(areas.values()),routing['hru_land_area_ha'],abs_tol=1e-7)
     coupled_area=sum(r['area_ha'] for r in scope if r['coupled'])
     budgets,budget_days=water_budget(scope)
     with (OUT/'hru_scope.csv').open('w',newline='') as f:
@@ -295,31 +299,34 @@ def main():
         q=np.array([flow[mode][d] for d in dates])
         differences[mode]={'outlet_daily_rmse_vs_official_m3s':float(np.sqrt(np.mean((q-reference)**2))),
             'outlet_mean_change_percent':float(100*(q.mean()/reference.mean()-1)) if reference.mean()!=0 else None}
-    fig,axs=plt.subplots(4,1,figsize=(12,10),sharex=True,layout='constrained')
+    fig,axs=plt.subplots(5,1,figsize=(12,12),sharex=True,layout='constrained')
     labels={'official':'Official SWAT+','existing_ft':'Existing freeze-thaw','shaw':'SWAT+SHAW (experimental)'}
     for mode in MODES:
         axs[0].plot(dates,[flow[mode][d] for d in dates],lw=.85,label=labels[mode])
-        for ax,field in zip(axs[1:],('snopack','et','perc')):
+        for ax,field in zip(axs[1:],('surq_gen','snopack','et','perc')):
             ax.plot(dates,[r[field] for r in wb[mode]],lw=.85)
-    for ax,label in zip(axs,('Outlet flow (m³/s)','Basin mean SWE (mm)','ET (mm/day)','Percolation (mm/day)')):
+    for ax,label in zip(axs,('Regulated outlet Q\n(m³/s)','Land HRU runoff\n(mm/day)','Land HRU SWE\n(mm)','Land HRU ET\n(mm/day)','Land HRU percolation\n(mm/day)')):
         ax.set_ylabel(label);ax.grid(alpha=.2)
     axs[0].legend(ncol=3,fontsize=9)
     fig.suptitle('Canadian case: identical forcing, uncalibrated process comparison\n2020 warm-up; no observed discharge supplied')
     fig.savefig(OUT/'process_comparison.png',dpi=180);fig.savefig(OUT/'process_comparison.pdf');plt.close(fig)
-    fig,axs=plt.subplots(2,3,figsize=(14,6),sharey='row',layout='constrained')
+    fig,axs=plt.subplots(3,3,figsize=(14,9),sharey='row',layout='constrained')
     for col,year in enumerate((2021,2022,2023)):
         for mode in MODES:
             rows=[r for r in wb[mode] if r['date'].year==year and r['date'].month<=5]
             x=[r['date'] for r in rows]
             axs[0,col].plot(x,[flow[mode][d] for d in x],lw=1.,label=labels[mode])
-            axs[1,col].plot(x,[r['snopack'] for r in rows],lw=1.)
+            axs[1,col].plot(x,[r['surq_gen'] for r in rows],lw=1.)
+            axs[2,col].plot(x,[r['snopack'] for r in rows],lw=1.)
         axs[0,col].set_title(str(year)+(' (through April)' if year==2023 else ''))
         for ax in axs[:,col]:
             ax.set_xlim(dt.date(year,1,1),dt.date(year,5,31))
             ax.xaxis.set_major_locator(mdates.MonthLocator())
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
             ax.grid(alpha=.2)
-    axs[0,0].set_ylabel('Outlet flow (m³/s)');axs[1,0].set_ylabel('Basin mean SWE (mm)')
+    axs[0,0].set_ylabel('Regulated outlet Q (m³/s)')
+    axs[1,0].set_ylabel('Land HRU runoff (mm/day)')
+    axs[2,0].set_ylabel('Land HRU SWE (mm)')
     axs[0,0].legend(fontsize=7)
     fig.suptitle('Winter–spring process comparison: January–May windows\nUncalibrated model results; no observed discharge supplied')
     fig.savefig(OUT/'winter_spring_comparison.png',dpi=180)
@@ -329,7 +336,7 @@ def main():
     for mode in MODES:
         axs[0].plot(dates,[r['sol_tmp'] for r in pw[mode]],lw=1.,label=labels[mode])
     axs[0].axhline(0,color='.25',ls='--',lw=.7)
-    axs[0].set_ylabel('Basin mean layer-2 soil T (°C)');axs[0].legend(ncol=2,fontsize=8)
+    axs[0].set_ylabel('Land HRU layer-2 soil T (°C)');axs[0].legend(ncol=2,fontsize=8)
     axs[1].fill_between(dates,[budget_days[d]['ice_mm'] for d in dates],color='tab:blue',alpha=.65)
     axs[1].set_ylabel('Soil ice water equivalent (mm)')
     axs[1].set_title('SHAW soil ice only: mean over the 123 coupled HRUs',fontsize=10)
@@ -343,20 +350,26 @@ def main():
         'days_basin_mean_layer2_below_zero':sum(r['sol_tmp']<0 for r in pw[mode])} for mode in MODES}
     summary={'status':'complete','period':'2020-01-01 to 2023-04-30','simulation_days':len(date_range(SIMULATION_START,SIMULATION_END)),
              'evaluation_days':len(expected),'evaluation_period':f'{EVALUATION_START} to {SIMULATION_END}',
-             'warmup':'2020','outlet_channel_ids':outlets,'total_area_ha':sum(areas.values()),
-             'total_area_km2':sum(areas.values())/100,
+             'warmup':'2020','outlet_channel_ids':outlets,
+             'total_area_ha':routing['outlet_drainage_area_ha'],
+             'total_area_km2':routing['outlet_drainage_area_km2'],
+             'hru_land_area_ha':sum(areas.values()),'hru_land_area_km2':sum(areas.values())/100,
+             'reservoir_polygon_area_ha':routing['reservoir_polygon_area_ha'],
              'coupled_area_ha':coupled_area,'coupled_hrus':sum(r['coupled'] for r in scope),
              'scope_groups':scope_groups,
              'total_hrus':len(scope),'regression':reg,'water_budget':budgets,'model_differences':differences,
              'soil_thermal_response':thermal,
              'forcing_parity':forcing,
              'transport_compatibility':transport,
+             'routing_checks':routing,
              'excluded_zero_area_scope_rows':excluded,
              'units':{'outlet_flow':'m3/s; sum of terminal channel daily mean flows',
-                      'annual_depths':'mm accumulated over the reported dates; 2023 is partial',
-                      'daily_flux_depths':'mm per day; basin area means',
-                      'daily_storage_depths':'mm; basin area means',
-                      'soil_layer2_C':'area mean of SWAT soil(j)%phys(2)%tmp; not surface temperature or a uniform physical depth across HRUs',
+                      'total_area_km2':'terminal-channel registered drainage area, including the independent reservoir polygon; denominator for outlet runoff depth',
+                      'hru_land_area_km2':'land HRU area; native basin water/plant outputs use land fractions, excluding the independent reservoir surface',
+                      'annual_depths':'land HRU area mean mm accumulated over the reported dates; 2023 is partial',
+                      'daily_flux_depths':'mm per day; land HRU area means',
+                      'daily_storage_depths':'mm; land HRU area means',
+                      'soil_layer2_C':'land HRU area mean of SWAT soil(j)%phys(2)%tmp; not surface temperature or a uniform physical depth across HRUs',
                       'shaw_coupled_soil_ice_mm':'liquid-water equivalent of soil ice over the 123 coupled HRUs only; excludes snow',
                       'water_budget':'mm liquid-water equivalent over the positive-area coupled domain only',
                       'canopy_air_exchange_mm':'signed atmospheric water input caused by changes to canopy-air control volume',

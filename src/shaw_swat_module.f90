@@ -3,6 +3,8 @@
 ! SWAT+ owns management, plant structure, constituents and downstream routing.
 module shaw_swat_module
   use iso_fortran_env, only: real64
+  use ieee_arithmetic, only: ieee_is_finite
+  use plant_data_module, only: pldb
   use shaw_column_api
   use hru_module, only: hru, surfq, latq, sepbtm, canstor, precip_eff, ep_day, es_day, canev, &
     ep_max, pet_day, snofall, snomlt, qtile, ihru
@@ -19,12 +21,17 @@ module shaw_swat_module
     type(shaw_column) :: c
     logical :: initialized=.false.
     real, allocatable :: overlap(:,:), width(:), exported(:), uptake(:)
-    real :: transp=0.
+    real :: transp=0., reference_height=10.
   end type
   type(column_hru), allocatable, save :: columns(:)
   logical, allocatable, save :: enabled(:)
   logical, save :: configured=.false., requested=.false.
-  integer, save :: diag=0,hour_diag=0
+  integer, save :: diag=0,hour_diag=0,config_diag=0
+  real, allocatable, save :: aspects(:)
+  logical, allocatable, save :: has_aspect(:)
+  character(32), save :: radiation_mode='aspect_or_horizontal',forcing_mode='fixed',thermal_mode='fixed'
+  real, save :: wind_height=10.,forcing_height=0.
+  integer, save :: rain_hours=24,rain_start=1
   integer, save :: capture_year=0,capture_day=0,capture_hour=0
 contains
   logical function shaw_active(j) result(active)
@@ -45,6 +52,7 @@ contains
         endif
         if(time%step/=1) error stop 'SHAW bridge currently requires daily SWAT forcing'
         allocate(columns(size(hru)),enabled(size(hru)))
+        call configure_interfaces()
         open(newunit=u,file='shaw_hru_scope.csv',status='replace')
         write(u,'(a)') 'hru,area_ha,coupled,reason'
         enabled=.false.
@@ -63,7 +71,7 @@ contains
         open(newunit=diag,file='shaw_hru_daily.csv',status='replace')
         write(diag,'(a)') 'year,jday,hru,precip_mm,external_soil_mm,surface_input_mm,et_mm,runoff_mm,'// &
           'percolation_mm,lateral_mm,storage_start_mm,storage_end_mm,residual_mm,swe_mm,ice_mm,tsoil_C,'// &
-          'retry_hours,max_hour_parts,canopy_air_exchange_mm,jacobian_retry_hours'
+          'retry_hours,max_hour_parts,canopy_air_exchange_mm,jacobian_retry_hours,snow_liquid_release_mm'
         if(selected_hru>0) then
           call get_environment_variable('SWAT_SHAW_CAPTURE_HOUR',setting,status=stat)
           if(stat==0.and.len_trim(setting)>0) then
@@ -81,6 +89,96 @@ contains
     active=.false.
     if(requested) active=enabled(j)
   end function
+
+  subroutine configure_interfaces()
+    integer :: u,stat,j,read_stat,i
+    real :: value
+    logical :: exists
+    character(256) :: line
+    allocate(aspects(size(hru)),has_aspect(size(hru)))
+    aspects=0.;has_aspect=.false.
+    call get_mode('SWAT_SHAW_RADIATION',radiation_mode)
+    if(radiation_mode/='aspect_or_horizontal'.and.radiation_mode/='horizontal'.and. &
+      radiation_mode/='legacy_north') error stop 'Invalid SWAT_SHAW_RADIATION'
+    call get_mode('SWAT_SHAW_FORCING',forcing_mode)
+    if(forcing_mode/='fixed'.and.forcing_mode/='legacy') error stop 'Invalid SWAT_SHAW_FORCING'
+    call get_mode('SWAT_SHAW_THERMAL',thermal_mode)
+    if(thermal_mode/='fixed'.and.thermal_mode/='estimated') error stop 'Invalid SWAT_SHAW_THERMAL'
+    call get_real_setting('SWAT_SHAW_WIND_HEIGHT',wind_height)
+    call get_real_setting('SWAT_SHAW_FORCING_HEIGHT',forcing_height)
+    if(wind_height<=0..or.forcing_height<0.) error stop 'Invalid meteorological reference height'
+    value=real(rain_hours);call get_real_setting('SWAT_SHAW_RAIN_HOURS',value)
+    if(value<1..or.value>24.) error stop 'SWAT_SHAW_RAIN_HOURS requires 1..24'
+    if(value/=real(nint(value))) error stop 'SWAT_SHAW_RAIN_HOURS requires integer'
+    rain_hours=nint(value)
+    value=real(rain_start);call get_real_setting('SWAT_SHAW_RAIN_START',value)
+    if(value<1..or.value>24.) error stop 'SWAT_SHAW_RAIN_START requires 1..24'
+    if(value/=real(nint(value))) error stop 'SWAT_SHAW_RAIN_START requires integer'
+    rain_start=nint(value)
+    inquire(file='shaw_aspect.csv',exist=exists)
+    if(exists) then
+      open(newunit=u,file='shaw_aspect.csv',status='old',action='read')
+      read(u,'(a)',iostat=stat) line
+      if(stat/=0) error stop 'Empty shaw_aspect.csv'
+      if(trim(line)/='hru,aspect_degrees') error stop 'shaw_aspect.csv header: hru,aspect_degrees'
+      do
+        read(u,'(a)',iostat=stat) line
+        if(stat<0) exit
+        if(stat/=0) error stop 'Cannot read shaw_aspect.csv'
+        if(len_trim(line)==0) cycle
+        if(count([(line(i:i)==',',i=1,len_trim(line))])/=1) error stop 'Aspect row requires exactly two columns'
+        j=0;value=-1.
+        read(line,*,iostat=read_stat) j,value
+        if(read_stat/=0) error stop 'Malformed shaw_aspect.csv row'
+        if(j<1.or.j>size(hru)) error stop 'Invalid aspect HRU'
+        if(hru(j)%area_ha<=0.) error stop 'Aspect supplied for dummy HRU'
+        if(has_aspect(j)) error stop 'Duplicate aspect HRU'
+        if(.not.ieee_is_finite(value)) error stop 'Nonfinite aspect'
+        if(value<0..or.value>360.) error stop 'Aspect must be 0..360 degrees clockwise from north'
+        aspects(j)=value;has_aspect(j)=.true.
+      enddo
+      close(u)
+    endif
+    open(newunit=config_diag,file='shaw_configuration.csv',status='replace')
+    write(config_diag,'(a)') 'hru,radiation_mode,forcing_mode,aspect_supplied,aspect_degrees,'// &
+      'hydraulic_slope_rad,radiation_slope_rad,wind_source_height_m,fixed_reference_height_m,'// &
+      'thermal_mode,bottom_node_m,deep_temperature_C,rain_hours,rain_start_hour'
+    open(newunit=u,file='shaw_output_semantics.txt',status='replace')
+    write(u,'(a)') 'SHAW snow_liquid_release_mm and native SWAT snomlt on coupled HRUs contain native MELT.'
+    write(u,'(a)') 'MELT includes snowpack liquid discharge and may include rain passing through snow.'
+    write(u,'(a)') 'It is not a pure ice-to-liquid phase-change diagnostic; do not pool meanings across model versions.'
+    write(u,'(a)') 'Fixed forcing: wind converted from explicit source height using the SWAT 0.2 power law.'
+    write(u,'(a)') 'Air temperature and RH are assumed vertically uniform; their source heights are unavailable.'
+    write(u,'(a)') 'Legacy forcing: dynamic max(2,canopy+2) m and unconverted wind, for ablation only.'
+    write(u,'(a)') 'Estimated thermal boundary uses native SHAW ITMPBC=1; no extra water storage is added.'
+    write(u,'(a)') 'Rain timing is synthetic; a shorter duration redistributes, but preserves, each daily total.'
+    close(u)
+  end subroutine
+
+  subroutine get_mode(name,value)
+    character(*),intent(in) :: name
+    character(*),intent(inout) :: value
+    character(64) :: setting
+    integer :: stat
+    call get_environment_variable(name,setting,status=stat)
+    if(stat==1) return
+    if(stat/=0.or.len_trim(setting)==0) error stop 'Invalid or empty SHAW mode setting'
+    if(len_trim(setting)>len(value)) error stop 'SHAW mode setting too long'
+    value=trim(setting)
+  end subroutine
+
+  subroutine get_real_setting(name,value)
+    character(*),intent(in) :: name
+    real,intent(inout) :: value
+    character(64) :: setting
+    integer :: stat,read_stat
+    call get_environment_variable(name,setting,status=stat)
+    if(stat==1) return
+    if(stat/=0.or.len_trim(setting)==0) error stop 'Invalid or empty SHAW numeric setting'
+    read(setting,*,iostat=read_stat) value
+    if(read_stat/=0) error stop 'Malformed SHAW numeric setting'
+    if(.not.ieee_is_finite(value)) error stop 'Nonfinite SHAW numeric setting'
+  end subroutine
 
   subroutine initialize_hru(j)
     integer,intent(in)::j
@@ -155,7 +253,31 @@ contains
       call shaw_set_solver_tolerance(s%c,1.e-4,1.e-3)
       call shaw_correct_canopy_jacobian(s%c,.true.)
       s%c%soitmp=wgn_pms(ig)%tmp_an
-      s%c%slope=atan(max(0.,hru(j)%topo%slope))
+      if(radiation_mode=='legacy_north') then
+        call shaw_set_terrain(s%c,real(hru(j)%topo%slope,real64),0.)
+      else if(has_aspect(j).and.radiation_mode=='aspect_or_horizontal') then
+        call shaw_set_terrain(s%c,real(hru(j)%topo%slope,real64),aspects(j))
+      else
+        call shaw_set_terrain(s%c,real(hru(j)%topo%slope,real64))
+      endif
+      ! Use a fixed above-canopy reference based on this HRU's plant community.
+      ! A later management change exceeding it must supply a higher explicit height.
+      s%reference_height=10.
+      do k=1,pcom(j)%npl
+        i=pcom(j)%plcur(k)%idplt
+        s%reference_height=max(s%reference_height,real(pldb(i)%chtmx,real64)+2.)
+      enddo
+      if(forcing_height>0.) s%reference_height=forcing_height
+      call shaw_set_forcing_height(s%c,s%reference_height)
+      if(thermal_mode=='estimated') then
+        s%c%itmpbc=1
+        s%c%tsavg=s%c%soitmp
+      endif
+      write(config_diag,'(i0,2(",",a),",",l1,5(",",es18.9),",",a,2(",",es18.9),2(",",i0))') &
+        j,trim(radiation_mode),trim(forcing_mode),has_aspect(j),aspects(j),s%c%slope, &
+        merge(0.,s%c%slope,radiation_mode=='horizontal'.or. &
+          (radiation_mode=='aspect_or_horizontal'.and..not.has_aspect(j))), &
+        wind_height,s%reference_height,trim(thermal_mode),s%c%zs(n),s%c%soitmp,rain_hours,rain_start
       s%c%clouds=.5
       expected=0.
       do k=1,nl
@@ -173,7 +295,7 @@ contains
     integer,intent(in)::j
     integer::i,k,h,n,nl,retry_hours,max_parts,dump_unit
     real::delta(99),external,overflow,solar(24),decl,lat,angle,temp,precip,surface_input,lai,root,height,mass
-    real::flux(320),water,ice,netet,runoff,perc,lateral,frac
+    real::flux(320),water,ice,netet,runoff,perc,lateral,frac,wind
     real(real64)::before,after,residual,hour_before,hour_after,hour_residual
     type(shaw_column)::hour_start
     if(.not.shaw_active(j)) return
@@ -199,6 +321,16 @@ contains
         mass=mass+pl_mass(j)%ab_gr(k)%m/10000.
       enddo
       call shaw_set_vegetation(c,lai,height,mass,root)
+      if(forcing_mode=='legacy') then
+        call shaw_set_forcing_height(c,max(2.,height+2.))
+        wind=w%windsp
+      else
+        call shaw_set_forcing_height(c,s%reference_height)
+        wind=shaw_wind_at_height(real(w%windsp,real64),wind_height,c%height)
+      endif
+      ! T/RH are assumed vertically uniform between the source and common SHAW
+      ! reference; source T/RH heights are unavailable in SWAT weather inputs.
+      ! This remains an approximation, especially over tall forest canopies.
       decl=.4093*sin(2.*acos(-1.)*(real(time%day)-81.)/365.)
       lat=c%alatud
       do h=1,24
@@ -207,23 +339,25 @@ contains
       enddo
       if(sum(solar)>0.) solar=solar/sum(solar)*max(0.,w%solrad)*1.e6/3600.
       surface_input=max(0.,precip_eff-w%precip)+max(0.,irrig(j)%applied-irrig(j)%runoff)
-      precip=max(0.,w%precip)/24000.
+      precip=0.
       flux=0.;snofall=0.;retry_hours=0;max_parts=1
       do h=1,24
+        precip=0.
+        if(modulo(h-rain_start,24)<rain_hours) precip=max(0.,w%precip)/(1000.*real(rain_hours))
         temp=w%tave+(w%tmax-w%tmin)/2.*sin((real(h)-9.)*acos(-1.)/12.)
         if(hour_diag/=0) then
           hour_before=1000.*shaw_storage(c)
           hour_start=c
           if(time%yrc==capture_year.and.time%day==capture_day.and.h==capture_hour) then
             hour_start%year=time%yrc;hour_start%julian=time%day;hour_start%hour=h
-            hour_start%tmpday=temp;hour_start%humday=w%rhum;hour_start%winday=w%windsp
+            hour_start%tmpday=temp;hour_start%humday=w%rhum;hour_start%winday=wind
             hour_start%sunhor=solar(h);hour_start%precip=precip
             open(newunit=dump_unit,file='shaw_failed_column.bin',access='stream',form='unformatted',status='replace')
             write(dump_unit) hour_start
             close(dump_unit)
           endif
         endif
-        call shaw_advance_hour(c,time%yrc,time%day,h,temp,real(w%rhum,real64),real(w%windsp,real64),solar(h),precip)
+        call shaw_advance_hour(c,time%yrc,time%day,h,temp,real(w%rhum,real64),wind,solar(h),precip)
         ! All bridge roots lie inside the stored soil domain; plant water
         ! capacitance is absent, so root supply must equal transpiration.
         if(abs(sum(c%flux(219:218+n-1))-1000.*c%flux(3))>1.e-6) &
@@ -287,15 +421,18 @@ contains
       hru(j)%sno_mm=real(shaw_swe(c)*1000.)
       canstor(j)=sum(c%pcandt)*1000.
       surfq(j)=runoff;sepbtm(j)=perc;latq(j)=lateral;qtile=0.
+      ! Native SHAW MELT includes snowpack liquid release, including rain
+      ! through snow. Retain this legacy numerical mapping; it is not pure melt.
+      ! The additional CSV column and semantics file identify its meaning.
       snomlt=flux(4)*1000.
       s%transp=flux(3)*1000.;ep_day=s%transp
       ! Aggregate residual ET includes canopy/snow evaporation and dew.
       ! Component-specific esoil/ecanopy are not physically separated in this first bridge.
       es_day=netet-ep_day;canev=0.
       ep_max=max(0.,pet_day)*min(1.,lai/3.)
-      write(diag,'(i0,2(",",i0),17(",",es18.9))') time%yrc,time%day,j,w%precip,external, &
+      write(diag,'(i0,2(",",i0),18(",",es18.9))') time%yrc,time%day,j,w%precip,external, &
         surface_input,netet,runoff,perc,lateral,before,after,residual,hru(j)%sno_mm,ice,soil(j)%phys(1)%tmp, &
-        real(retry_hours),real(max_parts),flux(318)*1000.,flux(320)
+        real(retry_hours),real(max_parts),flux(318)*1000.,flux(320),flux(4)*1000.
       if(abs(residual)>.1_real64) then
         flush(diag)
         write(*,*) 'SHAW water residual > 0.1 mm: year/day/HRU/residual',time%yrc,time%day,j,residual

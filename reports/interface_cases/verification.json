@@ -1,0 +1,24 @@
+{
+  "coupled_executable_sha256": "59f0ed0d4d49fd1f09636a659ebea1de4840fcc861d960447bcc0c27c4b42903",
+  "source_sha256": {
+    "src/shaw/CMakeLists.txt": "8b2ebd02e35d41f27ff61db4cd4fa4127c9b501be8bd386287d2978d1a05a4da",
+    "src/shaw/shaw_canopy_jacobian.f90": "6250fd515c309d9cddb007fd108895876eb0e9c7fa46f59f23672d6e3c6e985b",
+    "src/shaw/shaw_column_api.f90": "87c6703051637234f72724fd7ef62af3daecdd068d736cb9536b09a9b3adf6a2",
+    "src/shaw/shaw_column_types.f90": "33463ad336259c02acd126a491f2d562d38f960291d650970a3794cbe6b4a324",
+    "src/shaw/shaw_common_access.f90": "29494675abb913584f398eaaa15d395fa01b5911c4dbebe3b56a31f068102452",
+    "src/shaw/shaw_legacy_state.f90": "55a62f24dedc7c9ef6511867af2fcdd76bac6c35f8c20b7824a128ae1a959e6d",
+    "src/shaw/shaw_root_partition.f90": "75ac1cfad8e3ac8396e4c601270920d772b5eb292f4b85b82a4a50d41884bbfc",
+    "src/shaw/shaw_water_heat.for": "114f6b389afef7115f3d0647ca36b931f6a144bc28d0fbae3143e85fc4384ea3",
+    "src/shaw_swat_module.f90": "28843abe823a1c7e716824d1dad801697982d0558442d430e39c529a1c12f72e"
+  },
+  "source_hashes_verified": 9,
+  "ctest_log": "Internal ctest changing into directory: C:/work/Fortran_program/repo/yxltql/SWAT/SWAT+SHAW/build/coupled\nTest project C:/work/Fortran_program/repo/yxltql/SWAT/SWAT+SHAW/build/coupled\n    Start 2: shaw_column_isolation\n1/8 Test #2: shaw_column_isolation ............   Passed    0.26 sec\n    Start 3: shaw_dynamic_canopy\n2/8 Test #3: shaw_dynamic_canopy ..............   Passed    0.20 sec\n    Start 4: shaw_conductance_derivative\n3/8 Test #4: shaw_conductance_derivative ......   Passed    0.15 sec\n    Start 5: shaw_root_supply\n4/8 Test #5: shaw_root_supply .................   Passed    0.15 sec\n    Start 6: shaw_interface_geometry\n5/8 Test #6: shaw_interface_geometry ..........   Passed    0.16 sec\n    Start 7: shaw_interface_bad_height\n6/8 Test #7: shaw_interface_bad_height ........   Passed    0.01 sec\n    Start 8: shaw_interface_bad_aspect\n7/8 Test #8: shaw_interface_bad_aspect ........   Passed    0.01 sec\n    Start 9: shaw_interface_bad_wind\n8/8 Test #9: shaw_interface_bad_wind ..........   Passed    0.01 sec\n\n100% tests passed, 0 tests failed out of 8\n\nTotal Test time (real) =   0.98 sec\n",
+  "official_reference": {
+    "hours": 720,
+    "values_compared": 282960,
+    "different_values": 0,
+    "max_absolute_difference": 0,
+    "scope": "one canopy column; no solutes; original SAVE storage versus isolated extracted kernel; matched adapter inputs"
+  },
+  "note": "CTests were run after the API/kernel build. The subsequent CSV parser guard rebuild changes only the SWAT bridge; full basin and isolated runs use that final executable."
+}

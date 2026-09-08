@@ -1,8 +1,6 @@
 {
-  "status": "incomplete",
-  "errors": [
-    "shaw: incomplete or unsuccessful run (exit_code=None)"
-  ],
+  "status": "complete",
+  "errors": [],
   "runs": {
     "official": {
       "mode": "official",
@@ -44,7 +42,10 @@
         "src/surface.f90": "423d862ff55b2c73a88ff62aad79b3ce2e57b3ebf6be76777a9babc8276fc4e4",
         "src/pl_waterup.f90": "dee6a101129a0ce677ba8525df1b451cfc003ccd51e103482009a2eae5fc6ea3"
       },
-      "source_base_commit": "fb75b4697f65ccf604c4e261b2ad018cbfdef578"
+      "source_base_commit": "fb75b4697f65ccf604c4e261b2ad018cbfdef578",
+      "exit_code": 0,
+      "seconds": 4926.983999999997,
+      "completed_utc": "2026-09-07T17:08:52.679558+00:00"
     },
     "coupling_off": {
       "mode": "coupling_off",

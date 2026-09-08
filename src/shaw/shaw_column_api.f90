@@ -12,6 +12,7 @@ module shaw_column_api
   public :: shaw_set_solver_tolerance
   public :: shaw_correct_canopy_jacobian
   public :: shaw_snowfall_input
+  public :: shaw_set_terrain, shaw_set_forcing_height, shaw_wind_at_height
   type(shaw_snapshot), save :: pristine
   logical, save :: template_ready = .false.
 contains
@@ -84,6 +85,7 @@ contains
     slparm_saltkq = 0.
     options_canopy_water_tol=0.01 ! Original SHAW canopy-vapor stopping criterion.
     options_canopy_jacobian=0 ! Preserve original numerical path unless explicitly enabled.
+    radopt_radiation_slope=-1. ! Original shared slope unless terrain is configured explicitly.
     constn_presur = 101300. * exp(-elevation/8278.)
     c%ns = n
     c%zs(1:n) = z
@@ -166,8 +168,45 @@ contains
     c%plthgt(1)=max(0.02,height)
     c%pltwgt(1)=max(0.001,mass)
     c%rootdp(1)=max(0.01,min(root_depth,c%zs(c%ns-1)))
-    c%height=max(2.,height+2.)
   end subroutine
+
+  subroutine shaw_set_terrain(c, slope_ratio, aspect_degrees)
+    type(shaw_column), intent(inout) :: c
+    real, intent(in) :: slope_ratio
+    real, intent(in), optional :: aspect_degrees
+    if(.not.ieee_is_finite(slope_ratio).or.slope_ratio<0.) error stop 'Invalid hydraulic slope'
+    c%slope=atan(slope_ratio)
+    c%aspect=0.
+    call shaw_load_state(c%memory)
+    radopt_radiation_slope=0. ! Missing aspect: horizontal radiation, actual hydraulic slope.
+    if(present(aspect_degrees)) then
+      if(.not.ieee_is_finite(aspect_degrees)) error stop 'Nonfinite SHAW aspect'
+      if(aspect_degrees<0..or.aspect_degrees>360.) error stop 'SHAW aspect must be 0..360 degrees clockwise from north'
+      c%aspect=modulo(aspect_degrees,360.)*acos(-1.)/180.
+      radopt_radiation_slope=c%slope
+    endif
+    call shaw_save_state(c%memory)
+  end subroutine
+
+  subroutine shaw_set_forcing_height(c, reference_height)
+    type(shaw_column), intent(inout) :: c
+    real, intent(in) :: reference_height
+    if(.not.ieee_is_finite(reference_height).or.reference_height<=0.) error stop 'Invalid SHAW forcing height'
+    if(c%nplant>0) then
+      if(reference_height<=maxval(c%plthgt(1:c%nplant))) error stop 'SHAW forcing height must exceed canopy height'
+    endif
+    c%height=reference_height
+  end subroutine
+
+  real function shaw_wind_at_height(wind, source_height, target_height) result(converted)
+    real, intent(in) :: wind, source_height, target_height
+    ! Same 0.2 power-law approximation used by SWAT et_pot. Values refer to
+    ! height above ground; this is an explicit forcing approximation, not a
+    ! stability-corrected wind-profile reconstruction above forest canopies.
+    if(.not.all(ieee_is_finite([wind,source_height,target_height]))) error stop 'Nonfinite wind reference input'
+    if(wind<0..or.source_height<=0..or.target_height<=0.) error stop 'Invalid wind reference input'
+    converted=wind*(target_height/source_height)**0.2
+  end function
 
   subroutine shaw_advance_hour(c, year, day, hour, temperature, humidity, wind, solar, precip)
     type(shaw_column), intent(inout) :: c
@@ -177,6 +216,9 @@ contains
     type(shaw_column) :: start
     integer :: parts,part,dump_unit,strategy,strategies,requested_option
     logical :: converged
+    if(c%nplant>0) then
+      if(c%height<=maxval(c%plthgt(1:c%nplant))) error stop 'SHAW meteorological boundary is inside canopy'
+    endif
     c%year=year
     c%julian=day
     c%hour=hour

@@ -1650,14 +1650,31 @@
           1
         ]
       ]
+    },
+    "RADOPT": {
+      "offset": 20700,
+      "count": 2,
+      "fields": [
+        [
+          "RADIATION_SLOPE",
+          "REAL",
+          "",
+          2
+        ]
+      ]
     }
   },
-  "state_words": 20700,
+  "state_words": 20702,
   "implicit_saved_data": {
     "RAINSL": [
       "PSATK",
       "PSAT"
     ]
+  },
+  "optional_radiation_slope": {
+    "option": "radopt_radiation_slope",
+    "default": -1,
+    "meaning": "Negative preserves original shared slope; nonnegative overrides only SOLAR incidence geometry. Saved per HRU; hydraulic slope remains unchanged."
   },
   "diagnostic_array_contract": "Zero-pad all outputs; copy only initialized TOTFLO/TOTLAT/ROOTXT(1:NS).",
   "canopy_air_exchange": {

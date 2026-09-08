@@ -2,7 +2,7 @@
 module shaw_legacy_state
   use iso_fortran_env, only: int32
   implicit none
-  integer, parameter :: shaw_state_words = 20700
+  integer, parameter :: shaw_state_words = 20702
   type :: shaw_snapshot
     integer(int32) :: words(shaw_state_words) = 0
   end type
@@ -111,6 +111,9 @@ contains
     integer(int32) :: raw_options(3)
     common /SHP_OPTIONS/ raw_options
     save /SHP_OPTIONS/
+    integer(int32) :: raw_radopt(2)
+    common /SHP_RADOPT/ raw_radopt
+    save /SHP_RADOPT/
     raw_timewt = state%words(1:6)
     raw_constn = state%words(7:66)
     raw_slparm = state%words(67:6008)
@@ -145,6 +148,7 @@ contains
     raw_sv_rainsl = state%words(19858:20057)
     raw_result = state%words(20058:20697)
     raw_options = state%words(20698:20700)
+    raw_radopt = state%words(20701:20702)
   end subroutine
   subroutine shaw_save_state(state)
     type(shaw_snapshot), intent(out) :: state
@@ -250,6 +254,9 @@ contains
     integer(int32) :: raw_options(3)
     common /SHP_OPTIONS/ raw_options
     save /SHP_OPTIONS/
+    integer(int32) :: raw_radopt(2)
+    common /SHP_RADOPT/ raw_radopt
+    save /SHP_RADOPT/
     state%words(1:6) = raw_timewt
     state%words(7:66) = raw_constn
     state%words(67:6008) = raw_slparm
@@ -284,5 +291,6 @@ contains
     state%words(19858:20057) = raw_sv_rainsl
     state%words(20058:20697) = raw_result
     state%words(20698:20700) = raw_options
+    state%words(20701:20702) = raw_radopt
   end subroutine
 end module shaw_legacy_state

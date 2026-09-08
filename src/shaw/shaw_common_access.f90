@@ -449,4 +449,8 @@ module shaw_common_access
     options_canopy_water_tol, &
     options_canopy_jacobian
   save /SHP_OPTIONS/
+  real :: radopt_radiation_slope
+  common /SHP_RADOPT/ &
+    radopt_radiation_slope
+  save /SHP_RADOPT/
 end module shaw_common_access
